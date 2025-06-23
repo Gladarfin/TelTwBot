@@ -12,6 +12,17 @@ import (
 	"github.com/gempir/go-twitch-irc/v4"
 )
 
+const (
+	Black   = "\x1b[30m"
+	Red     = "\x1b[31m"
+	Green   = "\x1b[32m"
+	Yellow  = "\x1b[33m"
+	Blue    = "\x1b[34m"
+	Magenta = "\x1b[35m"
+	Cyan    = "\x1b[36m"
+	White   = "\x1b[37m"
+)
+
 //Greetings
 
 type Greeting struct {
@@ -61,20 +72,18 @@ func readTokenFromFile(filename string) string {
 	return string(data)
 }
 
+func sayAndLog(client *twitch.Client, channel string, message string, botUsername string) {
+	log.Printf("%s [%s] answer to %s\n",
+		Magenta,
+		botUsername,
+		message)
+	client.Say(channel, message)
+}
+
 func main() {
 	chanel := "gladarfin"
+	botUsername := "gladarfin_bot"
 	errGreetings := loadGreetings("hello.txt")
-
-	const (
-		Black   = "\x1b[30m"
-		Red     = "\x1b[31m"
-		Green   = "\x1b[32m"
-		Yellow  = "\x1b[33m"
-		Blue    = "\x1b[34m"
-		Magenta = "\x1b[35m"
-		Cyan    = "\x1b[36m"
-		White   = "\x1b[37m"
-	)
 
 	if errGreetings != nil {
 		log.Fatalf("Error while loading greetings: %v", errGreetings)
@@ -84,14 +93,13 @@ func main() {
 
 	accessToken := readTokenFromFile(".client")
 	client := twitch.NewClient("gladarfin_bot", accessToken)
-
 	client.OnConnect(func() {
 		log.Printf("%s✅ Bot connected to Twitch IRC!", Blue)
 		client.Join(chanel)
 	})
 
 	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		//Log all messages to console
+		//Log all messages from users to console
 		log.Printf("%s[%s] %s: %s\n", White, message.Channel, message.User.Name, message.Message)
 
 		//Responde to commands basic
@@ -100,7 +108,7 @@ func main() {
 		if strings.ToLower(message.Message) == "!hello" {
 			greeting := getRandomGreeting()
 			response := fmt.Sprintf("@%s %s - 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
-			client.Say(message.Channel, response)
+			sayAndLog(client, chanel, response, botUsername)
 		}
 	})
 
@@ -109,5 +117,4 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ Failed to connect:", err)
 	}
-
 }
