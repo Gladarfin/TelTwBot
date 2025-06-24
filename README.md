@@ -1,5 +1,5 @@
 # TelTwBot
-
+```
 /twitch-bot
 ├── Cmd/
 │   └── Bot/
@@ -11,4 +11,5 @@
 │   └── Twitch/          # Twitch-specific code
 ├── go.mod
 ├── go.sum
-└── Data/                # Data files         
+└── Data/                # Data files
+```       
