@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	rnd := config.InitRandom()
 	greetFile, err := config.ConfigPath(constants.GreetingsFile)
 	if err != nil {

@@ -1,6 +1,7 @@
 package bot
 
 import (
+	commands "TelTwBot/Internal/Commands"
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	"fmt"
@@ -37,17 +38,22 @@ func New(greeter *Greeter) (*TwitchBot, error) {
 func (tb *TwitchBot) Connect() error {
 	tb.Client.OnConnect(func() {
 		log.Printf("%s✅ Bot connected to Twitch IRC!", constants.Blue)
-		tb.Client.Join(constants.Chanel)
+		tb.Client.Join(constants.Channel)
 	})
 	tb.Client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 
 		log.Printf("%s[%s] %s: %s\n", constants.White, message.Channel, message.User.Name, message.Message)
 
+		//Return list of all commands for "!help"
+		if strings.ToLower(message.Message) == "!help" {
+			commandsList := commands.GetAllCommands()
+			SayAndLog(tb.Client, constants.Channel, commandsList, constants.BotUsername)
+		}
 		//Generate random greeting for "!hello" command
 		if strings.ToLower(message.Message) == "!hello" {
 			greeting := tb.Greeter.GetRandomGreeting()
 			response := fmt.Sprintf("@%s %s means 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
-			sayAndLog(tb.Client, constants.Chanel, response, constants.BotUsername)
+			SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
 		}
 	})
 
@@ -58,12 +64,4 @@ func (tb *TwitchBot) Connect() error {
 	}
 
 	return nil
-}
-
-func sayAndLog(client *twitch.Client, channel string, message string, botUsername string) {
-	log.Printf("%s [%s] answer to %s\n",
-		constants.Magenta,
-		botUsername,
-		message)
-	client.Say(channel, message)
 }

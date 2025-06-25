@@ -1,7 +1,7 @@
 package constants
 
 const (
-	Chanel        = "gladarfin"
+	Channel       = "gladarfin"
 	BotUsername   = "gladarfin_bot"
 	ConfigDir     = "Internal/Config"
 	TokenFile     = ".client"
