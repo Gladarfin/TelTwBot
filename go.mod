@@ -2,4 +2,7 @@ module TelTwBot
 
 go 1.24.1
 
-require github.com/gempir/go-twitch-irc/v4 v4.2.0 // indirect
+require (
+	github.com/gempir/go-twitch-irc/v4 v4.2.0 // indirect
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+)

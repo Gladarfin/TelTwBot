@@ -12,11 +12,11 @@ type Command struct {
 
 var allCommands = []Command{
 	{
-		Name:        "help",
+		Name:        "!help",
 		Description: "Displays a list of available commands.",
 	},
 	{
-		Name:        "hello",
+		Name:        "!hello",
 		Description: "Displays a random greeting to user.",
 	},
 }
