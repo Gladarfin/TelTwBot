@@ -7,6 +7,7 @@ import (
 	telegramBot "TelTwBot/Internal/Telegram"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -51,7 +52,7 @@ func New(greeter *Greeter) (*TwitchBot, error) {
 
 func (tb *TwitchBot) Connect() error {
 	tb.Client.OnConnect(func() {
-		log.Printf("%s✅ Bot connected to Twitch IRC!", constants.Blue)
+		log.Printf("%s✅Bot connected to Twitch IRC!", constants.Blue)
 		tgBot.SendMessage(fmt.Sprintf("[%s] ✅Bot connected to Twitch IRC!", time.Now().Format("15:04:05")))
 		tb.Client.Join(constants.Channel)
 	})
@@ -76,7 +77,36 @@ func (tb *TwitchBot) Connect() error {
 	fmt.Println(err)
 	if err != nil {
 		log.Fatal("❌ Failed to connect:", err)
+		tgBot.SendMessage(fmt.Sprintf("[%s] ❌Failed to connect: %s", time.Now().Format("15:04:05"), err))
 	}
 
 	return nil
+}
+
+func ReconnectTwitch(client *twitch.Client, maxRetries int) {
+	retryCount := 0
+	baseDelay := 5 * time.Second
+
+	for {
+		err := client.Connect()
+		if err == nil {
+			retryCount = 0
+			baseDelay = 5 * time.Second
+			continue
+		}
+
+		log.Printf("❌Connection error: %v (retry %d/%d)", err, retryCount+1, maxRetries)
+
+		if retryCount >= maxRetries {
+			log.Fatal("❌Connection failed! Max retries reached.")
+		}
+
+		delay := baseDelay * time.Duration(1<<retryCount)
+		delay += time.Duration(rand.Intn(2000)) * time.Millisecond
+
+		log.Printf("Reconnecting in %v...", delay)
+		time.Sleep(delay)
+		retryCount++
+	}
+
 }
