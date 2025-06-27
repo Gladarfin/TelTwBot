@@ -1,8 +1,10 @@
 package telegramBot
 
 import (
+	"TelTwBot/Internal/interfaces"
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -90,4 +92,66 @@ func (tn *TelegramNotifier) SendMessage(text string) error {
 	msg := tgbotapi.NewMessage(tn.chatID, text)
 	_, err := tn.bot.Send(msg)
 	return err
+}
+
+func (tn *TelegramNotifier) StartListening(twitchBot interfaces.TwitchBotInterface) {
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 1
+
+	updates := tn.bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil {
+			continue
+		}
+
+		if update.Message.IsCommand() {
+			tn.handleCommand(update, twitchBot)
+		} else {
+			tn.handleMessage(update)
+		}
+	}
+}
+
+func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot interfaces.TwitchBotInterface) {
+	command := strings.ToLower(update.Message.Command())
+
+	switch command {
+	case "uptime":
+		tn.handleUptimeCommand(update, twitchBot)
+	case "help":
+		tn.handleHelpCommand(update)
+	default:
+		tn.sendMessage(update.Message.Chat.ID, "Unknown command. Try /help")
+	}
+}
+
+func (tn *TelegramNotifier) handleUptimeCommand(update tgbotapi.Update, twitchBot interfaces.TwitchBotInterface) {
+	uptime, err := twitchBot.GetStreamUptime()
+	if err != nil {
+		tn.sendMessage(update.Message.Chat.ID, "Error checking uptime: "+err.Error())
+		return
+	}
+
+	response := fmt.Sprintf("🕒 Stream uptime: %s", uptime)
+	tn.sendMessage(update.Message.Chat.ID, response)
+}
+
+func (tn *TelegramNotifier) handleHelpCommand(update tgbotapi.Update) {
+	helpText := `Available commands:
+/uptime - Check stream uptime
+/help - Show this help message`
+	tn.sendMessage(update.Message.Chat.ID, helpText)
+}
+
+func (tn *TelegramNotifier) handleMessage(update tgbotapi.Update) {
+
+}
+
+func (tn *TelegramNotifier) sendMessage(chatID int64, text string) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	_, err := tn.bot.Send(msg)
+	if err != nil {
+		log.Printf("Error sending Telegram message: %v", err)
+	}
 }
