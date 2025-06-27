@@ -28,6 +28,8 @@ func NewTelegramNotifier(botToken string, chatID int64) (*TelegramNotifier, erro
 		return nil, err
 	}
 
+	setBotCommands(bot)
+
 	return &TelegramNotifier{
 		bot:    bot,
 		chatID: chatID,
@@ -40,6 +42,21 @@ func NewTelegramNotifierFromConfigFile(filename string) (*TelegramNotifier, erro
 		return nil, err
 	}
 	return NewTelegramNotifier(config.BotToken, config.ChatID)
+}
+
+func getBotCommands() []tgbotapi.BotCommand {
+	return []tgbotapi.BotCommand{
+		{Command: "uptime", Description: "Get stream uptime"},
+		{Command: "haha", Description: "Just for test"},
+		{Command: "help", Description: "Show help"},
+	}
+}
+
+func setBotCommands(bot *tgbotapi.BotAPI) error {
+	commands := getBotCommands()
+	config := tgbotapi.NewSetMyCommands(commands...)
+	_, err := bot.Request(config)
+	return err
 }
 
 func LoadConfigFromFile(filename string) (*BotConfig, error) {
@@ -138,10 +155,17 @@ func (tn *TelegramNotifier) handleUptimeCommand(update tgbotapi.Update, twitchBo
 }
 
 func (tn *TelegramNotifier) handleHelpCommand(update tgbotapi.Update) {
-	helpText := `Available commands:
-/uptime - Check stream uptime
-/help - Show this help message`
-	tn.sendMessage(update.Message.Chat.ID, helpText)
+	commands := getBotCommands()
+	var helpText strings.Builder
+	helpText.WriteString("🤖 <b>Available Commands:</b>\n\n")
+
+	for _, cmd := range commands {
+		helpText.WriteString(fmt.Sprintf("/%s - %s \n\n", cmd.Command, cmd.Description))
+	}
+
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, helpText.String())
+	msg.ParseMode = "HTML"
+	tn.bot.Send(msg)
 }
 
 func (tn *TelegramNotifier) handleMessage(update tgbotapi.Update) {
