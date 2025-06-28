@@ -4,7 +4,7 @@ import (
 	commands "TelTwBot/Internal/Commands"
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
-	"TelTwBot/Internal/interfaces"
+	botInterfaces "TelTwBot/Internal/Interfaces"
 	"fmt"
 	"log"
 	"math/rand"
@@ -20,12 +20,12 @@ type TwitchBot struct {
 	Greeter    *Greeter
 	startTime  time.Time
 	streamLive bool
-	tgBot      interfaces.TelegramNotifierInterface
+	tgBot      botInterfaces.TelegramNotifierInterface
 }
 
-var _ interfaces.TwitchBotInterface = (*TwitchBot)(nil)
+var _ botInterfaces.TwitchBotInterface = (*TwitchBot)(nil)
 
-func New(greeter *Greeter, tgNotifier interfaces.TelegramNotifierInterface) (*TwitchBot, error) {
+func New(greeter *Greeter, tgNotifier botInterfaces.TelegramNotifierInterface) (*TwitchBot, error) {
 	tokenFilePath, err := config.ConfigPath(constants.TokenFile)
 	if err != nil {
 		log.Fatalf("Error getting token path: %v", err)

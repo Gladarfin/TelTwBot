@@ -1,7 +1,7 @@
 package telegramBot
 
 import (
-	"TelTwBot/Internal/interfaces"
+	botInterfaces "TelTwBot/Internal/Interfaces"
 	"bufio"
 	"fmt"
 	"log"
@@ -111,7 +111,7 @@ func (tn *TelegramNotifier) SendMessage(text string) error {
 	return err
 }
 
-func (tn *TelegramNotifier) StartListening(twitchBot interfaces.TwitchBotInterface) {
+func (tn *TelegramNotifier) StartListening(twitchBot botInterfaces.TwitchBotInterface) {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 1
 
@@ -130,7 +130,7 @@ func (tn *TelegramNotifier) StartListening(twitchBot interfaces.TwitchBotInterfa
 	}
 }
 
-func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot interfaces.TwitchBotInterface) {
+func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot botInterfaces.TwitchBotInterface) {
 	command := strings.ToLower(update.Message.Command())
 
 	switch command {
@@ -143,7 +143,7 @@ func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot inte
 	}
 }
 
-func (tn *TelegramNotifier) handleUptimeCommand(update tgbotapi.Update, twitchBot interfaces.TwitchBotInterface) {
+func (tn *TelegramNotifier) handleUptimeCommand(update tgbotapi.Update, twitchBot botInterfaces.TwitchBotInterface) {
 	uptime, err := twitchBot.GetStreamUptime()
 	if err != nil {
 		tn.sendMessage(update.Message.Chat.ID, "Error checking uptime: "+err.Error())

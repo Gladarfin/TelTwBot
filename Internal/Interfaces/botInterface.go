@@ -1,4 +1,4 @@
-package interfaces
+package botInterfaces
 
 type TwitchBotInterface interface {
 	GetStreamUptime() (string, error)
