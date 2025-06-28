@@ -2,6 +2,7 @@ package telegramBot
 
 import (
 	botInterfaces "TelTwBot/Internal/Interfaces"
+	helpers "TelTwBot/Internal/Telegram/Helpers"
 	"bufio"
 	"fmt"
 	"log"
@@ -124,12 +125,15 @@ func (tn *TelegramNotifier) StartListening(twitchBot botInterfaces.TwitchBotInte
 
 func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot botInterfaces.TwitchBotInterface) {
 	command := strings.ToLower(update.Message.Command())
+	args := update.Message.CommandArguments()
 
 	switch command {
 	case "uptime":
 		tn.handleUptimeCommand(update, twitchBot)
 	case "help":
 		tn.handleHelpCommand(update)
+	case "math":
+		tn.handleMathCommand(update, args)
 	default:
 		tn.sendMessage(update.Message.Chat.ID, "Unknown command. Try /help")
 	}
@@ -162,6 +166,22 @@ func (tn *TelegramNotifier) handleHelpCommand(update tgbotapi.Update) {
 
 func (tn *TelegramNotifier) handleMessage(update tgbotapi.Update) {
 
+}
+
+func (tn *TelegramNotifier) handleMathCommand(update tgbotapi.Update, args string) {
+	if args == "" {
+		tn.sendMessage(update.Message.Chat.ID, "Incorrect input. Usage: /math <expression> (e.g. /math 2+2)")
+		return
+	}
+
+	result, err := helpers.EvaluateExpression(args)
+	if err != nil {
+		tn.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Error: %s\nUsage: /math <num> <op> <num> (e.g., 2 + 2)", err.Error()))
+		return
+	}
+
+	response := fmt.Sprintf("🧮Result: %s = %v", args, result)
+	tn.sendMessage(update.Message.Chat.ID, response)
 }
 
 func (tn *TelegramNotifier) sendMessage(chatID int64, text string) {
