@@ -44,16 +44,8 @@ func NewTelegramNotifierFromConfigFile(filename string) (*TelegramNotifier, erro
 	return NewTelegramNotifier(config.BotToken, config.ChatID)
 }
 
-func getBotCommands() []tgbotapi.BotCommand {
-	return []tgbotapi.BotCommand{
-		{Command: "uptime", Description: "Get stream uptime"},
-		{Command: "haha", Description: "Just for test"},
-		{Command: "help", Description: "Show help"},
-	}
-}
-
 func setBotCommands(bot *tgbotapi.BotAPI) error {
-	commands := getBotCommands()
+	commands := GetBotCommands()
 	config := tgbotapi.NewSetMyCommands(commands...)
 	_, err := bot.Request(config)
 	return err
@@ -155,7 +147,7 @@ func (tn *TelegramNotifier) handleUptimeCommand(update tgbotapi.Update, twitchBo
 }
 
 func (tn *TelegramNotifier) handleHelpCommand(update tgbotapi.Update) {
-	commands := getBotCommands()
+	commands := GetBotCommands()
 	var helpText strings.Builder
 	helpText.WriteString("🤖 <b>Available Commands:</b>\n\n")
 

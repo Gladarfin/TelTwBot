@@ -83,7 +83,7 @@ func (tb *TwitchBot) Connect() error {
 	err := tb.Client.Connect()
 	fmt.Println(err)
 	if err != nil {
-		log.Fatal("❌ Failed to connect:", err)
+		log.Fatal("❌Failed to connect:", err)
 		tb.tgBot.SendMessage(fmt.Sprintf("[%s] ❌Failed to connect: %s", time.Now().Format("15:04:05"), err))
 	}
 
