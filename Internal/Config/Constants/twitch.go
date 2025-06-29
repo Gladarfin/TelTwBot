@@ -6,4 +6,5 @@ const (
 	ConfigDir     = "Internal/Config"
 	TokenFile     = ".client"
 	GreetingsFile = "hello.txt"
+	FriendsFile   = "friends.txt"
 )

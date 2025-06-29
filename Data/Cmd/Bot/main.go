@@ -1,10 +1,10 @@
 package main
 
 import (
-	bot "TelTwBot/Internal/Bot"
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	telegramBot "TelTwBot/Internal/Telegram"
+	bot "TelTwBot/Internal/TwitchBot"
 	"log"
 )
 

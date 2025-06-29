@@ -5,6 +5,7 @@ import (
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	botInterfaces "TelTwBot/Internal/Interfaces"
+	twBotCommands "TelTwBot/Internal/TwitchBot/Commands"
 	"fmt"
 	"log"
 	"math/rand"
@@ -36,6 +37,7 @@ func New(greeter *Greeter, tgNotifier botInterfaces.TelegramNotifierInterface) (
 		log.Fatalf("Error reading token file: %v", err)
 	}
 	client := twitch.NewClient(constants.BotUsername, string(tokenData))
+	client.SetIRCToken(string(tokenData))
 
 	return &TwitchBot{
 		Client:     client,
@@ -68,6 +70,14 @@ func (tb *TwitchBot) Connect() error {
 			greeting := tb.Greeter.GetRandomGreeting()
 			response := fmt.Sprintf("@%s %s means 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
 			SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
+		}
+
+		if strings.ToLower(message.Message) == "!who" {
+			friends, err := twBotCommands.GetStreamers()
+			if err != nil {
+				log.Printf("%s❌Failed to get streamers list.", time.Now().Format("15:04:05"))
+			}
+			SayAndLog(tb.Client, constants.Channel, friends, constants.BotUsername)
 		}
 	})
 
