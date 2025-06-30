@@ -72,6 +72,14 @@ func (tb *TwitchBot) Connect() error {
 			SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
 		}
 
+		if strings.ToLower(message.Message) == "!game" {
+			game, err := twBotCommands.GetCurrentGame("c_a_k_e")
+			if err != nil {
+				log.Printf("[%s]❌Failed to get game name. Error: %s", time.Now().Format("15:04:05"), err)
+			}
+			SayAndLog(tb.Client, constants.Channel, game, constants.BotUsername)
+		}
+
 		if strings.ToLower(message.Message) == "!who" {
 			friends, err := twBotCommands.GetStreamers()
 			if err != nil {

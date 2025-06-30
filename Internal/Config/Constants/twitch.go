@@ -7,4 +7,5 @@ const (
 	TokenFile     = ".client"
 	GreetingsFile = "hello.txt"
 	FriendsFile   = "friends.txt"
+	HelixFile     = ".twHelix"
 )
