@@ -73,7 +73,7 @@ func (tb *TwitchBot) Connect() error {
 		}
 
 		if strings.ToLower(message.Message) == "!game" {
-			game, err := twBotCommands.GetCurrentGame("c_a_k_e")
+			game, err := twBotCommands.GetCurrentGame(constants.Channel)
 			if err != nil {
 				log.Printf("[%s]❌Failed to get game name. Error: %s", time.Now().Format("15:04:05"), err)
 			}
