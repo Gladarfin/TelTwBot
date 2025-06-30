@@ -32,3 +32,4 @@ go.work.sum
 # .vscode/
 .client
 Internal/Config/.tgClient
+Internal/Config/.twHelix
