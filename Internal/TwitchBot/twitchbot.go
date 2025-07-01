@@ -136,14 +136,35 @@ func (tb *TwitchBot) GetStreamUptime() (string, error) {
 		int(uptime.Seconds())%60), nil
 }
 
-func GetAllCommands(tb *TwitchBot) string {
-	var helpText strings.Builder
-	helpText.WriteString("Available commands: ")
-	helpText.WriteString(" --------------------------------------- ")
+func GetAllCommands(tb *TwitchBot) []string {
+
+	const (
+		maxMessageLength = 400
+		separator        = "   ********************************************   "
+		separatorLength  = len(separator)
+	)
+
+	var messages []string
+	currentMessage := &strings.Builder{}
+
+	currentMessage.WriteString("Available commands: ")
+	currentMessage.WriteString(separator)
+
 	//Yes, it's the year 2025 A.D., and we don't have multiline messages in Twitch.
 	for _, cmd := range tb.commands {
-		helpText.WriteString(fmt.Sprintf("%s: %s", cmd.Name, cmd.Description))
-		helpText.WriteString(" --------------------------------------- ")
+
+		entry := fmt.Sprintf(" %s: %s %s ", cmd.Name, cmd.Description, separator)
+		if currentMessage.Len()+len(entry) > maxMessageLength {
+			messages = append(messages, currentMessage.String())
+			currentMessage.Reset()
+			currentMessage.WriteString("Commands (continued): ")
+			currentMessage.WriteString(separator)
+		}
+		currentMessage.WriteString(entry)
 	}
-	return helpText.String()
+	if currentMessage.Len() > 0 {
+		messages = append(messages, currentMessage.String())
+	}
+
+	return messages
 }

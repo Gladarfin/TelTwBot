@@ -17,7 +17,9 @@ func (tb *TwitchBot) InitCommands() {
 			Description: "Displays a list of available commands.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 				commandsList := GetAllCommands(tb)
-				SayAndLog(tb.Client, constants.Channel, commandsList, constants.BotUsername)
+				for _, msg := range commandsList {
+					SayAndLog(tb.Client, constants.Channel, msg, constants.BotUsername)
+				}
 			},
 		},
 		{
