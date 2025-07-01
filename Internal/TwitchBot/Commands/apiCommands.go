@@ -54,7 +54,7 @@ func NewTwitchAPI() *TwitchAPI {
 	}
 }
 
-func GetCurrentGame(broadcasterName string) (string, error) {
+func GetCurrentStreamInfo(broadcasterName string) (StreamInfo, error) {
 	twApi := NewTwitchAPI()
 
 	url := fmt.Sprintf("%s/streams?user_login=%s", twApi.BaseApiURL, broadcasterName)
@@ -62,7 +62,7 @@ func GetCurrentGame(broadcasterName string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
-		return "", err
+		return StreamInfo{}, err
 	}
 
 	req.Header.Set("Client-ID", twApi.ClientID)
@@ -71,28 +71,48 @@ func GetCurrentGame(broadcasterName string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return StreamInfo{}, err
 	}
 
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return StreamInfo{}, err
 	}
 
 	var streamInfo StreamInfo
 	err = json.Unmarshal(body, &streamInfo)
 	if err != nil {
-		return "", err
+		return StreamInfo{}, err
 	}
 
 	if len(streamInfo.Data) == 0 {
-		return "", fmt.Errorf("Streamer is offline or doesn't exist.")
+		return StreamInfo{}, fmt.Errorf("Streamer is offline or doesn't exist.")
+	}
+
+	return streamInfo, nil
+}
+
+func GetCurrentGame(broadcasterName string) (string, error) {
+	streamInfo, err := GetCurrentStreamInfo(broadcasterName)
+	if err != nil {
+		return "", err
 	}
 
 	response := fmt.Sprintf("Current game is: %s", streamInfo.Data[0].GameName)
 
+	return response, nil
+}
+
+func GetTitle(broadcasterName string) (string, error) {
+	streamInfo, err := GetCurrentStreamInfo(broadcasterName)
+	if err != nil {
+		return "", err
+	}
+
+	//Maybe in the future, I"ll need some formatting
+	response := streamInfo.Data[0].Title
 	return response, nil
 }
 

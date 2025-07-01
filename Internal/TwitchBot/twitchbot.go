@@ -83,9 +83,17 @@ func (tb *TwitchBot) Connect() error {
 		if strings.ToLower(message.Message) == "!who" {
 			friends, err := twBotCommands.GetStreamers()
 			if err != nil {
-				log.Printf("%s❌Failed to get streamers list.", time.Now().Format("15:04:05"))
+				log.Printf("[%s]❌Failed to get streamers list.", time.Now().Format("15:04:05"))
 			}
 			SayAndLog(tb.Client, constants.Channel, friends, constants.BotUsername)
+		}
+
+		if strings.ToLower(message.Message) == "!title" {
+			title, err := twBotCommands.GetTitle(constants.Channel)
+			if err != nil {
+				log.Printf("[%s]❌Failed to get title of the stream. Error: %s", time.Now().Format("15:04:05"), err)
+			}
+			SayAndLog(tb.Client, constants.Channel, title, constants.BotUsername)
 		}
 	})
 

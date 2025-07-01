@@ -8,7 +8,7 @@ import (
 )
 
 func SayAndLog(client *twitch.Client, channel string, message string, botUsername string) {
-	log.Printf("%s [%s] answer with %s\n",
+	log.Printf("%s [%s] answer with '%s'\n",
 		constants.Magenta,
 		botUsername,
 		message)
