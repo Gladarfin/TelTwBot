@@ -1,11 +1,9 @@
 package bot
 
 import (
-	commands "TelTwBot/Internal/Commands"
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	botInterfaces "TelTwBot/Internal/Interfaces"
-	twBotCommands "TelTwBot/Internal/TwitchBot/Commands"
 	"fmt"
 	"log"
 	"math/rand"
@@ -22,6 +20,13 @@ type TwitchBot struct {
 	startTime  time.Time
 	streamLive bool
 	tgBot      botInterfaces.TelegramNotifierInterface
+	commands   []Command
+}
+
+type Command struct {
+	Name        string
+	Description string
+	Handler     func(tb *TwitchBot, message twitch.PrivateMessage)
 }
 
 var _ botInterfaces.TwitchBotInterface = (*TwitchBot)(nil)
@@ -49,6 +54,7 @@ func New(greeter *Greeter, tgNotifier botInterfaces.TelegramNotifierInterface) (
 }
 
 func (tb *TwitchBot) Connect() error {
+	tb.InitCommands()
 	tb.Client.OnConnect(func() {
 		log.Printf("%s✅Bot connected to Twitch IRC!", constants.Blue)
 		tb.tgBot.SendMessage(fmt.Sprintf("[%s] ✅Bot connected to Twitch IRC!", time.Now().Format("15:04:05")))
@@ -58,43 +64,14 @@ func (tb *TwitchBot) Connect() error {
 	})
 	tb.Client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 
+		cmdInput := strings.ToLower(message.Message)
+		for _, cmd := range tb.commands {
+			if cmdInput == cmd.Name {
+				cmd.Handler(tb, message)
+				break
+			}
+		}
 		log.Printf("%s[%s] %s: %s\n", constants.White, message.Channel, message.User.Name, message.Message)
-
-		//Return list of all commands for "!help"
-		if strings.ToLower(message.Message) == "!help" {
-			commandsList := commands.GetAllCommands()
-			SayAndLog(tb.Client, constants.Channel, commandsList, constants.BotUsername)
-		}
-		//Generate random greeting for "!hello" command
-		if strings.ToLower(message.Message) == "!hello" {
-			greeting := tb.Greeter.GetRandomGreeting()
-			response := fmt.Sprintf("@%s %s means 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
-			SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
-		}
-
-		if strings.ToLower(message.Message) == "!game" {
-			game, err := twBotCommands.GetCurrentGame(constants.Channel)
-			if err != nil {
-				log.Printf("[%s]❌Failed to get game name. Error: %s", time.Now().Format("15:04:05"), err)
-			}
-			SayAndLog(tb.Client, constants.Channel, game, constants.BotUsername)
-		}
-
-		if strings.ToLower(message.Message) == "!who" {
-			friends, err := twBotCommands.GetStreamers()
-			if err != nil {
-				log.Printf("[%s]❌Failed to get streamers list.", time.Now().Format("15:04:05"))
-			}
-			SayAndLog(tb.Client, constants.Channel, friends, constants.BotUsername)
-		}
-
-		if strings.ToLower(message.Message) == "!title" {
-			title, err := twBotCommands.GetTitle(constants.Channel)
-			if err != nil {
-				log.Printf("[%s]❌Failed to get title of the stream. Error: %s", time.Now().Format("15:04:05"), err)
-			}
-			SayAndLog(tb.Client, constants.Channel, title, constants.BotUsername)
-		}
 	})
 
 	tb.Client.OnUserPartMessage(func(message twitch.UserPartMessage) {
@@ -157,4 +134,16 @@ func (tb *TwitchBot) GetStreamUptime() (string, error) {
 		int(uptime.Hours()),
 		int(uptime.Minutes())%60,
 		int(uptime.Seconds())%60), nil
+}
+
+func GetAllCommands(tb *TwitchBot) string {
+	var helpText strings.Builder
+	helpText.WriteString("Available commands: ")
+	helpText.WriteString(" --------------------------------------- ")
+	//Yes, it's the year 2025 A.D., and we don't have multiline messages in Twitch.
+	for _, cmd := range tb.commands {
+		helpText.WriteString(fmt.Sprintf("%s: %s", cmd.Name, cmd.Description))
+		helpText.WriteString(" --------------------------------------- ")
+	}
+	return helpText.String()
 }
