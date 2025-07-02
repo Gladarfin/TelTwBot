@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gempir/go-twitch-irc/v4"
 )
 
 type TwitchAPI struct {
@@ -156,4 +158,65 @@ func LoadConfigFromFile(filename string) (*ApiConfig, error) {
 	}
 
 	return config, nil
+}
+
+func GetUserInfo(username string) (*twitch.User, error) {
+	user, err := GetUserByLogin(username)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func GetUserByLogin(username string) (*twitch.User, error) {
+	twApi := NewTwitchAPI()
+	url := fmt.Sprintf("%s/users?login=%s", twApi.BaseApiURL, username)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Client-ID", twApi.ClientID)
+	req.Header.Set("Authorization", "Bearer "+twApi.OAuthToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Data []struct {
+			ID          string `json:"id"`
+			Login       string `json:"login"`
+			DisplayName string `json:"display_name"`
+			Type        string `json:"type"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, err
+	}
+
+	if len(response.Data) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return &twitch.User{
+		ID:          response.Data[0].ID,
+		Name:        response.Data[0].Login,
+		DisplayName: response.Data[0].DisplayName,
+	}, nil
 }

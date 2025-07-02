@@ -5,6 +5,7 @@ import (
 	twBotCommands "TelTwBot/Internal/TwitchBot/Commands"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gempir/go-twitch-irc/v4"
@@ -29,6 +30,7 @@ func (tb *TwitchBot) InitCommands() {
 				greeting := tb.Greeter.GetRandomGreeting()
 				response := fmt.Sprintf("@%s %s means 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
 				SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !hello command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
 		},
 		{
@@ -40,6 +42,7 @@ func (tb *TwitchBot) InitCommands() {
 					log.Printf("[%s]❌Failed to get title of the stream. Error: %s", time.Now().Format("15:04:05"), err)
 				}
 				SayAndLog(tb.Client, constants.Channel, title, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !title command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
 		},
 		{
@@ -51,17 +54,53 @@ func (tb *TwitchBot) InitCommands() {
 					log.Printf("[%s]❌Failed to get game name. Error: %s", time.Now().Format("15:04:05"), err)
 				}
 				SayAndLog(tb.Client, constants.Channel, game, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !game command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
 		},
 		{
 			Name:        "!who",
-			Description: "Shows participating streamers",
+			Description: "Shows participating streamers.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 				friends, err := twBotCommands.GetStreamers()
 				if err != nil {
 					log.Printf("[%s]❌Failed to get streamers list.", time.Now().Format("15:04:05"))
 				}
 				SayAndLog(tb.Client, constants.Channel, friends, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !who command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
-		}}
+		},
+		{
+			Name:        "!role",
+			Description: "Shows the user role on current channel.",
+			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
+
+				args := strings.Fields(message.Message)
+				var targetUser string
+				if len(args) > 1 {
+					//if username specified we use this username, if not we use username of user which invoke command
+					targetUser = args[1]
+				} else {
+					targetUser = message.User.Name
+				}
+
+				user, err := twBotCommands.GetUserInfo(targetUser)
+				if err != nil {
+					msg := fmt.Sprintf("Could not find user %s", targetUser)
+					log.Printf("[%s]❌Failed to get user info.", time.Now().Format("15:04:05"))
+					SayAndLog(tb.Client, constants.Channel, msg, constants.BotUsername)
+					return
+				}
+
+				roles, err := twBotCommands.GetUserRole(user)
+				if err != nil {
+					log.Printf("[%s]❌%s has no special roles in this channel.", time.Now().Format("15:04:05"), user.Name)
+					msg := fmt.Sprintf("%s has no special roles in this channel.", user.Name)
+					SayAndLog(tb.Client, constants.Channel, msg, constants.BotUsername)
+				}
+
+				SayAndLog(tb.Client, constants.Channel, roles, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !role command for %s", time.Now().Format("15:04:05"), targetUser)
+			},
+		},
+	}
 }

@@ -64,12 +64,16 @@ func (tb *TwitchBot) Connect() error {
 	})
 	tb.Client.OnPrivateMessage(func(message twitch.PrivateMessage) {
 
-		cmdInput := strings.ToLower(message.Message)
+		cmdInput := strings.TrimSpace(strings.ToLower(message.Message))
 		for _, cmd := range tb.commands {
-			if cmdInput == cmd.Name {
-				cmd.Handler(tb, message)
+			if strings.HasPrefix(cmdInput, cmd.Name) {
+				args := strings.Fields(cmdInput[len(cmd.Name):])
+				msgWithArgs := message
+				msgWithArgs.Message = strings.Join(args, " ")
+				cmd.Handler(tb, msgWithArgs)
 				break
 			}
+
 		}
 		log.Printf("%s[%s] %s: %s\n", constants.White, message.Channel, message.User.Name, message.Message)
 	})
