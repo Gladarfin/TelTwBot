@@ -2,3 +2,5 @@ github.com/gempir/go-twitch-irc/v4 v4.2.0 h1:OCeff+1aH4CZIOxgKOJ8dQjh+1ppC6sLWrX
 github.com/gempir/go-twitch-irc/v4 v4.2.0/go.mod h1:QsOMMAk470uxQ7EYD9GJBGAVqM/jDrXBNbuePfTauzg=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 h1:wG8n/XJQ07TmjbITcGiUaOtXxdrINDz1b0J1w0SzqDc=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1/go.mod h1:A2S0CWkNylc2phvKXWBBdD3K0iGnDBGbzRpISP2zBl8=
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=

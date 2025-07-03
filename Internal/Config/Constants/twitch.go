@@ -8,4 +8,5 @@ const (
 	GreetingsFile = "hello.txt"
 	FriendsFile   = "friends.txt"
 	HelixFile     = ".twHelix"
+	DbConfigFile  = "database.json"
 )

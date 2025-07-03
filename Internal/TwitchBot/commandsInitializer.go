@@ -28,7 +28,7 @@ func (tb *TwitchBot) InitCommands() {
 			Description: "Displays a random greeting to user.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 				greeting := tb.Greeter.GetRandomGreeting()
-				response := fmt.Sprintf("@%s %s means 'hello' in %s", message.User.Name, greeting.Text, greeting.Language)
+				response := fmt.Sprintf("@%s, %s * means 'hello' in %s *", greeting.Text, message.User.Name, greeting.Language)
 				SayAndLog(tb.Client, constants.Channel, response, constants.BotUsername)
 				log.Printf("[%s] ✅Processed !hello command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
