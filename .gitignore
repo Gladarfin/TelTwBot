@@ -33,3 +33,4 @@ go.work.sum
 .client
 Internal/Config/.tgClient
 Internal/Config/.twHelix
+Internal/Config/database.json
