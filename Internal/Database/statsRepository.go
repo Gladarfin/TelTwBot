@@ -23,7 +23,29 @@ type UserStats struct {
 	UpdatedAt sql.NullTime
 }
 
-func (d *Database) GetUserStats(ctx context.Context, userID int) ([]UserStats, error) {
+func (d *Database) GetOrCreateUserStats(ctx context.Context, userID int, username string) ([]UserStats, error) {
+
+	stats, err := d.getExistingUserStats(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(stats) == 0 {
+		if err := d.ensureUserExists(ctx, userID, username); err != nil {
+			return nil, fmt.Errorf("failed to ensure user exists: %w", err)
+		}
+
+		if err := d.createDefaultStatsForUser(ctx, userID); err != nil {
+			return nil, fmt.Errorf("failed to create default stats: %w", err)
+		}
+
+		return d.getExistingUserStats(ctx, userID)
+	}
+
+	return stats, nil
+}
+
+func (d *Database) getExistingUserStats(ctx context.Context, userID int) ([]UserStats, error) {
 	const query = `
 			SELECT s.name, us.value, us.updated_at
 			FROM user_stats us
@@ -33,8 +55,9 @@ func (d *Database) GetUserStats(ctx context.Context, userID int) ([]UserStats, e
 
 	rows, err := d.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get user stats: %s", err)
+		return nil, fmt.Errorf("failed to get user stats: %w", err)
 	}
+
 	defer rows.Close()
 
 	var stats []UserStats
@@ -42,18 +65,55 @@ func (d *Database) GetUserStats(ctx context.Context, userID int) ([]UserStats, e
 		var stat UserStats
 		stat.UserID = userID
 		if err := rows.Scan(&stat.StatType, &stat.Value, &stat.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("Failed to scan stat row: %s", err)
+			return nil, fmt.Errorf("failed to scan stat row: %w", err)
 		}
+
 		stats = append(stats, stat)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
 	return stats, nil
+}
+
+// Create new user if not exist
+func (d *Database) ensureUserExists(ctx context.Context, userID int, username string) error {
+	const query = `
+			INSERT INTO users (id, username, created_at, updated_at)
+			VALUES ($1, $2, NOW(), NOW())
+			ON CONFLICT (id) DO NOTHING
+	`
+
+	_, err := d.db.ExecContext(ctx, query, userID, username)
+	if err != nil {
+		return fmt.Errorf("failed to ensure user exists: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) createDefaultStatsForUser(ctx context.Context, userID int) error {
+	const query = `
+			INSERT INTO user_stats (user_id, stat_type_id, value, updated_at)
+			SELECT $1, id, default_value, NOW()
+			FROM stat_types
+	`
+
+	_, err := d.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to create default stats: %w", err)
+	}
+
+	return nil
 }
 
 func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName string, value int) error {
 
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("Failed to begin transaction: %w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -65,7 +125,7 @@ func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName str
 	`
 	err = tx.QueryRowContext(ctx, queryStatConstraints, statName).Scan(&stat.ID, &stat.MinValue, &stat.MaxValue)
 	if err != nil {
-		return fmt.Errorf("Failed to get stat type constraints: %w", err)
+		return fmt.Errorf("failed to get stat type constraints: %w", err)
 	}
 
 	var curValue int
@@ -77,7 +137,7 @@ func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName str
 	err = tx.QueryRowContext(ctx, queryCurrentStatValue, userID, stat.ID).Scan(&curValue)
 
 	if err != nil && err != sql.ErrNoRows {
-		return fmt.Errorf("Failed to get current stat value: %w", err)
+		return fmt.Errorf("failed to get current stat value: %w", err)
 	}
 
 	if err == sql.ErrNoRows {
@@ -101,11 +161,11 @@ func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName str
 
 	_, err = tx.ExecContext(ctx, queryUpdateValue, userID, stat.ID, newValue)
 	if err != nil {
-		return fmt.Errorf("Failed to update stat: %w", err)
+		return fmt.Errorf("failed to update stat: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("Failed to commit transaction: %w", err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
