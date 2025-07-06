@@ -14,21 +14,30 @@ type Database struct {
 	db *sql.DB
 }
 
+var (
+	dbInstance *Database
+)
+
 func New(connectionString string) (*Database, error) {
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open database. Error: %s", err)
+		return nil, fmt.Errorf("failed to open database. Error: %s", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to ping database: %s", err)
+		return nil, fmt.Errorf("failed to ping database: %s", err)
 	}
 
 	log.Printf("[%s] ✅Successfully connected to database.", time.Now().Format("15:04:05"))
-	return &Database{db: db}, nil
+	dbInstance = &Database{db: db}
+	return dbInstance, nil
+}
+
+func GetInstance() *Database {
+	return dbInstance
 }
 
 func (database *Database) Close() error {

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -23,7 +24,40 @@ type UserStats struct {
 	UpdatedAt sql.NullTime
 }
 
-func (d *Database) GetOrCreateUserStats(ctx context.Context, userID int, username string) ([]UserStats, error) {
+func (d *Database) getOrCreateUser(ctx context.Context, username string) (int, error) {
+	var userID int
+	const userIdQuery = `
+			SELECT id FROM users WHERE username = $1
+	`
+	err := d.db.QueryRowContext(ctx, userIdQuery, username).Scan(&userID)
+	if err == nil {
+		return userID, nil
+	}
+
+	if !errors.Is(err, sql.ErrNoRows) {
+		return 0, fmt.Errorf("error checking user: %w", err)
+	}
+
+	const addUserQuery = `
+			INSERT INTO users (username, created_at, updated_at)
+			VALUES($1, NOW(), NOW())
+			RETURNING id
+	`
+	err = d.db.QueryRowContext(ctx, addUserQuery, username).Scan(&userID)
+
+	if err != nil {
+		return 0, fmt.Errorf("error creating user: %w", err)
+	}
+
+	return userID, nil
+}
+
+func (d *Database) GetOrCreateUserStats(ctx context.Context, username string) ([]UserStats, error) {
+
+	userID, err := d.getOrCreateUser(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("user setup failed: %w", err)
+	}
 
 	stats, err := d.getExistingUserStats(ctx, userID)
 	if err != nil {
