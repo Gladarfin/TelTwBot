@@ -102,5 +102,19 @@ func (tb *TwitchBot) InitCommands() {
 				log.Printf("[%s] ✅Processed !role command for %s", time.Now().Format("15:04:05"), targetUser)
 			},
 		},
+		{
+			Name:        "!stats",
+			Description: "Shows user stats.",
+			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
+				stats, err := twBotCommands.GetStats(message.User.Name)
+				if err != nil {
+					log.Printf("[%s]❌ Failed to get stats for %s: %v", time.Now().Format("15:04:05"), message.User.Name, err)
+					SayAndLog(tb.Client, constants.Channel, "Sorry, couldn't retrieve your stats. Please try again later.", constants.BotUsername)
+					return
+				}
+				SayAndLog(tb.Client, constants.Channel, stats, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !stats command for %s.", time.Now().Format("15:04:05"), message.User.Name)
+			},
+		},
 	}
 }

@@ -1,0 +1,23 @@
+package twBotCommands
+
+import (
+	db "TelTwBot/Internal/Database"
+	"context"
+	"fmt"
+	"strings"
+)
+
+func GetStats(username string) (string, error) {
+	database := db.GetInstance()
+	stats, err := database.GetOrCreateUserStats(context.Background(), username)
+	if err != nil {
+		return "", err
+	}
+
+	var message strings.Builder
+	message.WriteString(fmt.Sprintf("%s's stats: ", username))
+	for _, stat := range stats {
+		message.WriteString(fmt.Sprintf("%s: %d | ", stat.StatType, stat.Value))
+	}
+	return message.String(), nil
+}

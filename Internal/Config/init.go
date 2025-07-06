@@ -39,7 +39,7 @@ func ConfigPath(filename string) (string, error) {
 		return "", err
 	}
 
-	exeDir := filepath.Join(filepath.Dir(exePath), "../../..")
+	exeDir := filepath.Join(filepath.Dir(exePath), "../..")
 	return filepath.Join(exeDir, constants.ConfigDir, filename), nil
 }
 
