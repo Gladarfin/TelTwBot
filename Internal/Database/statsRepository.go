@@ -59,24 +59,11 @@ func (d *Database) GetOrCreateUserStats(ctx context.Context, username string) ([
 		return nil, fmt.Errorf("user setup failed: %w", err)
 	}
 
-	stats, err := d.getExistingUserStats(ctx, userID)
-	if err != nil {
-		return nil, err
+	if err := d.createDefaultStatsForUser(ctx, userID); err != nil {
+		return nil, fmt.Errorf("failed to ensure stats exist: %w", err)
 	}
 
-	if len(stats) == 0 {
-		if err := d.ensureUserExists(ctx, userID, username); err != nil {
-			return nil, fmt.Errorf("failed to ensure user exists: %w", err)
-		}
-
-		if err := d.createDefaultStatsForUser(ctx, userID); err != nil {
-			return nil, fmt.Errorf("failed to create default stats: %w", err)
-		}
-
-		return d.getExistingUserStats(ctx, userID)
-	}
-
-	return stats, nil
+	return d.getExistingUserStats(ctx, userID)
 }
 
 func (d *Database) getExistingUserStats(ctx context.Context, userID int) ([]UserStats, error) {
@@ -112,32 +99,25 @@ func (d *Database) getExistingUserStats(ctx context.Context, userID int) ([]User
 	return stats, nil
 }
 
-// Create new user if not exist
-func (d *Database) ensureUserExists(ctx context.Context, userID int, username string) error {
-	const query = `
-			INSERT INTO users (id, username, created_at, updated_at)
-			VALUES ($1, $2, NOW(), NOW())
-			ON CONFLICT (id) DO NOTHING
-	`
+func (d *Database) createDefaultStatsForUser(ctx context.Context, userID int) error {
 
-	_, err := d.db.ExecContext(ctx, query, userID, username)
+	statTypes, err := d.getAllStatTypes(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to ensure user exists: %w", err)
+		return fmt.Errorf("failed to get stat types: %w", err)
 	}
 
-	return nil
-}
-
-func (d *Database) createDefaultStatsForUser(ctx context.Context, userID int) error {
-	const query = `
+	const insertMissingStats = `
 			INSERT INTO user_stats (user_id, stat_type_id, value, updated_at)
 			SELECT $1, id, default_value, NOW()
 			FROM stat_types
+			WHERE name = $2
+			ON CONFLICT (user_id, stat_type_id) DO NOTHING
 	`
-
-	_, err := d.db.ExecContext(ctx, query, userID)
-	if err != nil {
-		return fmt.Errorf("failed to create default stats: %w", err)
+	for _, statType := range statTypes {
+		_, err := d.db.ExecContext(ctx, insertMissingStats, userID, statType)
+		if err != nil {
+			return fmt.Errorf("failed to create stat %s: for user: %w", statType, err)
+		}
 	}
 
 	return nil
@@ -203,4 +183,28 @@ func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName str
 	}
 
 	return nil
+}
+
+func (d *Database) getAllStatTypes(ctx context.Context) ([]string, error) {
+	const query = `SELECT name FROM stat_types`
+	rows, err := d.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stat type: %w", err)
+	}
+	defer rows.Close()
+
+	var statTypes []string
+	for rows.Next() {
+		var statType string
+		if err := rows.Scan(&statType); err != nil {
+			return nil, fmt.Errorf("failed to scan stat type: %w", err)
+		}
+		statTypes = append(statTypes, statType)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return statTypes, nil
 }

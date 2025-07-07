@@ -90,7 +90,7 @@ func GetCurrentStreamInfo(broadcasterName string) (StreamInfo, error) {
 	}
 
 	if len(streamInfo.Data) == 0 {
-		return StreamInfo{}, fmt.Errorf("Streamer is offline or doesn't exist.")
+		return StreamInfo{}, fmt.Errorf("streamer is offline or doesn't exist")
 	}
 
 	return streamInfo, nil

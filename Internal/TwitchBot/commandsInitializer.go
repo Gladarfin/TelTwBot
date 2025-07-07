@@ -70,31 +70,25 @@ func (tb *TwitchBot) InitCommands() {
 			},
 		},
 		{
+			//There is a problem: that Helix API doesn't have info for user role on channel, so I need to think about how to work around it.
+			//Now its command shows the roles for users that invoke it only.
 			Name:        "!role",
 			Description: "Shows the user role on current channel.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 
 				args := strings.Fields(message.Message)
 				var targetUser string
-				if len(args) > 1 {
+				if len(args) > 0 {
 					//if username specified we use this username, if not we use username of user which invoke command
-					targetUser = args[1]
+					targetUser = args[0]
 				} else {
 					targetUser = message.User.Name
 				}
 
-				user, err := twBotCommands.GetUserInfo(targetUser)
+				roles, err := twBotCommands.GetUserRole(&message.User)
 				if err != nil {
-					msg := fmt.Sprintf("Could not find user %s", targetUser)
-					log.Printf("[%s]❌Failed to get user info.", time.Now().Format("15:04:05"))
-					SayAndLog(tb.Client, constants.Channel, msg, constants.BotUsername)
-					return
-				}
-
-				roles, err := twBotCommands.GetUserRole(user)
-				if err != nil {
-					log.Printf("[%s]❌%s has no special roles in this channel.", time.Now().Format("15:04:05"), user.Name)
-					msg := fmt.Sprintf("%s has no special roles in this channel.", user.Name)
+					log.Printf("[%s]❌%s has no special roles in this channel.", time.Now().Format("15:04:05"), message.User.Name)
+					msg := fmt.Sprintf("%s has no special roles in this channel.", message.User.Name)
 					SayAndLog(tb.Client, constants.Channel, msg, constants.BotUsername)
 				}
 

@@ -63,7 +63,6 @@ func (tb *TwitchBot) Connect() error {
 		tb.startTime = time.Now()
 	})
 	tb.Client.OnPrivateMessage(func(message twitch.PrivateMessage) {
-
 		cmdInput := strings.TrimSpace(strings.ToLower(message.Message))
 		for _, cmd := range tb.commands {
 			if strings.HasPrefix(cmdInput, cmd.Name) {
