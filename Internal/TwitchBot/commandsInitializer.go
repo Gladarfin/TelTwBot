@@ -110,5 +110,42 @@ func (tb *TwitchBot) InitCommands() {
 				log.Printf("[%s] ✅Processed !stats command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
 		},
+		{
+			Name:        "!duel",
+			Description: "Starts the duel with other user.",
+			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
+				duel, err := twBotCommands.GetStats(message.User.Name)
+				if err != nil {
+					log.Printf("[%s]❌Failed to start duel: %v", time.Now().Format("15:04:05"), err)
+					SayAndLog(tb.Client, constants.Channel, "Sorry, can't start duel right now. Please try again later.", constants.BotUsername)
+					return
+				}
+				SayAndLog(tb.Client, constants.Channel, duel, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !stats command for %s.", time.Now().Format("15:04:05"), message.User.Name)
+			},
+		},
+		{
+			Name:        "!up",
+			Description: "Increase selected stat by 1 if there is enough free points.",
+			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
+				args := strings.Fields(message.Message)
+
+				if len(args) == 0 {
+					log.Printf("[%s]❌Failed to increase stat for %s: stat not specified.", time.Now().Format("15:04:05"), message.User.Name)
+					SayAndLog(tb.Client, constants.Channel, "The stat command should contain the name of the stat that you want to increase.", constants.BotUsername)
+					return
+				}
+
+				stats, err := twBotCommands.UpStat(message.User, args[0])
+				if err != nil {
+					log.Printf("[%s]❌Failed to increase stat for %s: %w.", time.Now().Format("15:04:05"), message.User.Name, err)
+					SayAndLog(tb.Client, constants.Channel, "Failed to increase stat %s", args[0])
+					return
+				}
+
+				SayAndLog(tb.Client, constants.Channel, stats, constants.BotUsername)
+				log.Printf("[%s] ✅Processed !up command for %s.", time.Now().Format("15:04:05"), message.User.Name)
+			},
+		},
 	}
 }
