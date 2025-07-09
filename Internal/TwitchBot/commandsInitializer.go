@@ -5,6 +5,7 @@ import (
 	twBotCommands "TelTwBot/Internal/TwitchBot/Commands"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -130,16 +131,29 @@ func (tb *TwitchBot) InitCommands() {
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 				args := strings.Fields(message.Message)
 
-				if len(args) == 0 {
-					log.Printf("[%s]❌Failed to increase stat for %s: stat not specified.", time.Now().Format("15:04:05"), message.User.Name)
-					SayAndLog(tb.Client, constants.Channel, "The stat command should contain the name of the stat that you want to increase.", constants.BotUsername)
+				if len(args) != 2 {
+					log.Printf("[%s]❌Failed to increase stat for %s. The command contains an incorrect number of arguments.", time.Now().Format("15:04:05"), message.User.Name)
+					SayAndLog(tb.Client, constants.Channel, "The stat command should contain the name of the stat that you want to increase and value: !up <stat_to_increse> <value>.", constants.BotUsername)
 					return
 				}
 
-				stats, err := twBotCommands.UpStat(message.User, args[0])
+				val, err := strconv.Atoi(args[1])
+				if err != nil {
+					log.Printf("[%s]❌Error converting '%s' to int: %v", time.Now().Format("15:04:05"), args[1], err)
+					SayAndLog(tb.Client, constants.Channel, "Second argument in command should be integer value.", constants.BotUsername)
+					return
+				}
+
+				if val <= 0 {
+					log.Printf("[%s]❌Error, value argument should be greater than 0.", time.Now().Format("15:04:05"))
+					SayAndLog(tb.Client, constants.Channel, "Second argument in command should be greater than 0.", constants.BotUsername)
+					return
+				}
+
+				stats, err := twBotCommands.UpStat(message.User.Name, args[0], val)
 				if err != nil {
 					log.Printf("[%s]❌Failed to increase stat for %s: %w.", time.Now().Format("15:04:05"), message.User.Name, err)
-					SayAndLog(tb.Client, constants.Channel, "Failed to increase stat %s", args[0])
+					SayAndLog(tb.Client, constants.Channel, "Failed to increase stat.", constants.BotUsername)
 					return
 				}
 
