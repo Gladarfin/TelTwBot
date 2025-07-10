@@ -115,7 +115,7 @@ func (tb *TwitchBot) InitCommands() {
 			Name:        "!duel",
 			Description: "Starts the duel with other user.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
-				duel, err := twBotCommands.GetStats(message.User.Name)
+				duel, err := twBotCommands.StartDuel(message.User.Name)
 				if err != nil {
 					log.Printf("[%s]❌Failed to start duel: %v", time.Now().Format("15:04:05"), err)
 					SayAndLog(tb.Client, constants.Channel, "Sorry, can't start duel right now. Please try again later.", constants.BotUsername)
@@ -147,6 +147,12 @@ func (tb *TwitchBot) InitCommands() {
 				if val <= 0 {
 					log.Printf("[%s]❌Error, value argument should be greater than 0.", time.Now().Format("15:04:05"))
 					SayAndLog(tb.Client, constants.Channel, "Second argument in command should be greater than 0.", constants.BotUsername)
+					return
+				}
+
+				if args[0] == "free-points" {
+					log.Printf("[%s]❌Error, you can't increase free-points with this command.", time.Now().Format("15:04:05"))
+					SayAndLog(tb.Client, constants.Channel, "Can't increase free-points stat this way.", constants.BotUsername)
 					return
 				}
 

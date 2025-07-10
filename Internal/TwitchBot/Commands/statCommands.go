@@ -21,3 +21,13 @@ func GetStats(username string) (string, error) {
 	}
 	return message.String(), nil
 }
+
+func UpStat(username string, stat string, val int) (string, error) {
+	database := db.GetInstance()
+	statName, newStatValue, err := database.UpdateUserStat(context.Background(), username, stat, val)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s's %s is now %d", username, statName, newStatValue), nil
+}

@@ -208,3 +208,103 @@ func (d *Database) getAllStatTypes(ctx context.Context) ([]string, error) {
 
 	return statTypes, nil
 }
+
+func (d *Database) UpdateUserStat(ctx context.Context, username string, stat string, val int) (string, int, error) {
+
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to begin transaction %w", err)
+	}
+
+	defer tx.Rollback()
+
+	var userID int
+	err = tx.QueryRowContext(ctx, "SELECT id from users WHERE username = $1", username).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", 0, fmt.Errorf("user %s not found", username)
+		}
+		return "", 0, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	var statTypeID, minValue, maxValue int
+	var statName string
+	err = tx.QueryRowContext(ctx, `
+		SELECT id, name, min_value, max_value
+		FROM stat_types
+		WHERE name = $1`, stat).Scan(&statTypeID, &statName, &minValue, &maxValue)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", 0, fmt.Errorf("stat %s not found", stat)
+		}
+		return "", 0, fmt.Errorf("failed to get stat type: %w", err)
+	}
+
+	var curStatValue, curFreePoints int
+	err = tx.QueryRowContext(ctx, `
+		SELECT value FROM user_stats
+		WHERE user_id = $1 AND stat_type_id = $2
+	`, userID, statTypeID).Scan(&curStatValue)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get current stat value: %w", err)
+	}
+
+	var freePointsStatID int
+	err = tx.QueryRowContext(ctx, `
+		SELECT id FROM stat_types
+		WHERE name = 'free-points'
+	`).Scan(&freePointsStatID)
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to get free-points stat id: %w", err)
+	}
+
+	err = tx.QueryRowContext(ctx, `
+		SELECT value FROM user_stats
+		WHERE user_id = $1 AND stat_type_id = %2
+	`, userID, freePointsStatID).Scan(&curFreePoints)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			curFreePoints = 0
+		} else {
+			return "", 0, fmt.Errorf("failed to get free points: %w", err)
+		}
+	}
+
+	if curFreePoints < val {
+		return "", 0, fmt.Errorf("not enough free points: need %d, have %d", val, curFreePoints)
+	}
+
+	newStatValue := curStatValue + val
+	if newStatValue > maxValue {
+		newStatValue = maxValue
+	}
+
+	pointsUsed := newStatValue - curStatValue
+	newFreePoints := curFreePoints - pointsUsed
+
+	const updStatQuery = `
+		INSERT INTO user_stats (user_id, stat_type_id, value)
+		VALUES ($1,$2,$3)
+		ON CONFLICT (user_id, stat_type_id)
+		DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+	`
+	_, err = tx.ExecContext(ctx, updStatQuery, userID, statTypeID, newStatValue)
+
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to update stat: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, updStatQuery, userID, freePointsStatID, newFreePoints)
+
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to update free points: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return "", 0, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return statName, newStatValue, nil
+}
