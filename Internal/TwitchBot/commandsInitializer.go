@@ -115,14 +115,7 @@ func (tb *TwitchBot) InitCommands() {
 			Name:        "!duel",
 			Description: "Starts the duel with other user.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
-				duel, err := twBotCommands.StartDuel(message.User.Name)
-				if err != nil {
-					log.Printf("[%s]❌Failed to start duel: %v", time.Now().Format("15:04:05"), err)
-					SayAndLog(tb.Client, constants.Channel, "Sorry, can't start duel right now. Please try again later.", constants.BotUsername)
-					return
-				}
-				SayAndLog(tb.Client, constants.Channel, duel, constants.BotUsername)
-				log.Printf("[%s] ✅Processed !stats command for %s.", time.Now().Format("15:04:05"), message.User.Name)
+				tb.StartDuel(message.User.Name)
 			},
 		},
 		{
@@ -158,7 +151,7 @@ func (tb *TwitchBot) InitCommands() {
 
 				stats, err := twBotCommands.UpStat(message.User.Name, args[0], val)
 				if err != nil {
-					log.Printf("[%s]❌Failed to increase stat for %s: %w.", time.Now().Format("15:04:05"), message.User.Name, err)
+					log.Printf("[%s]❌Failed to increase stat for %s: %s.", time.Now().Format("15:04:05"), message.User.Name, err)
 					SayAndLog(tb.Client, constants.Channel, "Failed to increase stat.", constants.BotUsername)
 					return
 				}

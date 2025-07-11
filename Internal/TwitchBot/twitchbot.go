@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gempir/go-twitch-irc/v4"
@@ -21,6 +22,19 @@ type TwitchBot struct {
 	streamLive bool
 	tgBot      botInterfaces.TelegramNotifierInterface
 	commands   []Command
+
+	CurrentDuel          *DuelChallenge
+	DuelMutex            sync.Mutex
+	LastDuelTime         time.Time
+	IsDuelCooldownActive bool
+}
+
+type DuelChallenge struct {
+	Initiator    string
+	Challenger   string
+	Timer        *time.Timer
+	IsActive     bool
+	CreationTime time.Time
 }
 
 type Command struct {
