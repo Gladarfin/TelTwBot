@@ -1,0 +1,142 @@
+[
+  {
+    "AnnounceMessage": "The crowd gathers as %s and %s prepare to duel!",
+    "DuelMessage": "%s executes a perfect Thunder Palm Strike while %s counters with Phantom Mirror Defense! The arena trembles from the impact! After careful review, the victory goes to - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s tosses a rose at %s's feet - the challenge is accepted!",
+    "DuelMessage": "A blur of motion - Celestial Dragon Kick meets Shadow Serpent Slash mid-air! The judges declare the winner - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s cracks their knuckles; %s adjusts their stance. This won't end well.",
+    "DuelMessage": "Inferno Burst Fist collides with Glacial Tsunami Palm! The resulting steam cloud obscures everything... when it clears, both fighters are standing. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s vs %s. A coin flip decides who strikes first. The duel begins!",
+    "DuelMessage": "Meteor Crash Elbow versus Titan's Judgment Slam! The ground fractures beneath them. After deliberation, the winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s and %s circle each other, waiting for an opening.",
+    "DuelMessage": "Lightning Guillotine and Void Shatter Strike connect simultaneously! Both combatants are hurled backward. Neither rises immediately. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s vs %s. The referee barely finishes saying 'Begin!' before the action starts.",
+    "DuelMessage": "Solar Flare Uppercut meets Abyssal Void Grasp in a spectacular clash! The audience holds their breath as the victor is announced - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s whispers an insult. %s's eye twitches. Here we go.",
+    "DuelMessage": "Omega Nova Beam and Black Hole Absorption cancel each other out in a deafening explosion! When the dust settles, both are still standing. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s vs %s. Someone in the crowd yells 'Fight!' and chaos ensues.",
+    "DuelMessage": "Heaven's Wrath Dropkick and Soul Reaper Slice intersect at the apex! The impact sends shockwaves through the stadium. The winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s spins their weapon dramatically. %s sighs and prepares.",
+    "DuelMessage": "Giga Impact Punch narrowly misses as Neural Shock Pressure Point Strike lands! The medical team rushes forward as the victor is declared - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. A hush falls over the arena. This duel will be legendary.",
+    "DuelMessage": "Supernova Fist and Cosmic Tidal Wave unleash apocalyptic force! Miraculously, both fighters remain on their feet. The judges call it a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s draws a line in the sand with their sword. %s steps over it.",
+    "DuelMessage": "Illusion Mirage Strike is countered by Chaos Eclipse Kick! The speed is too fast to follow! After slow-motion review, the winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s pops their neck. %s stretches. This is happening.",
+    "DuelMessage": "Time-Skip Blitz meets Reversal Destiny Strike in a temporal paradox! The timekeepers confer before announcing, the winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. A single drop of sweat hits the ground. The duel begins.",
+    "DuelMessage": "Grand Collision shakes the very foundations! Both fighters are sent flying, landing unconscious at the same time. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s and %s exchange nods. No words are needed.",
+    "DuelMessage": "Venomous Shadow Needles are shrugged off as Terra Break Fist connects! The crowd erupts as the victor is revealed - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s adjusts their gloves with deliberate slowness. %s smirks.",
+    "DuelMessage": "Ultimate Dragon Crush is dodged at the last second! Silent Death Touch finds its mark! The winner by split decision is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. The air crackles with energy as both fighters power up.",
+    "DuelMessage": "Iron Mountain Breaker meets Gale Slicer Slash in a shower of sparks! The judges' scorecards show the winner as - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. Someone in the audience starts a countdown. Both fighters tense.",
+    "DuelMessage": "Final Impact and Absolute Zero Strike collide with nuclear force! The protective barriers shatter as both fighters are KO'd simultaneously. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s cracks a joke. %s doesn't laugh. The duel begins.",
+    "DuelMessage": "Radiant Sun Smash is absorbed and returned as Dark Matter Blast! The energy discharge blinds everyone momentarily. When vision returns, the winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. A tumbleweed rolls by as the fighters stare each other down.",
+    "DuelMessage": "1000 Blows in an Instant leaves both combatants panting and bruised. Neither will back down. The referee calls it a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "%s dramatically removes their outer robe. %s yawns.",
+    "DuelMessage": "Flying Dragon Kick is intercepted mid-air with a perfectly timed counter! The medical team is on standby as the winner is named - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s cracks their neck left, then right. %s rolls their shoulders.",
+    "DuelMessage": "Shadow Step is predicted perfectly! Phoenix Rising Uppercut connects with brutal efficiency! After review, the victory is awarded to - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. A bell rings. Both fighters spring into action!",
+    "DuelMessage": "Meteor Shower is deflected by Whirlwind Shield! The final projectile's impact decides the match! The winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s and %s exchange traditional pre-duel insults.",
+    "DuelMessage": "Hadouken meets Spinning Piledriver in a clash of styles! The unconventional techniques leave the judges debating before declaring, the winner is - %s!",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s vs %s. Someone shouts 'Dance battle!' The duel takes an unexpected turn.",
+    "DuelMessage": "Robot Moves face off against Moonwalking Roundhouse Kicks! The crowd's cheers determine the winner - %s.",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s starts breakdancing aggressively. This is a duel now.",
+    "DuelMessage": "Windmills and headspins somehow turn into actual combat moves! The style points winner is - %s.",
+    "IsDraw": false
+  },
+  {
+    "AnnounceMessage": "%s challenges %s to a staring contest. It escalates.",
+    "DuelMessage": "Hours pass. Blinks are exchanged. Neither yields. The duel ends in a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "Cards are drawn. This duel will be decided by chance.",
+    "DuelMessage": "Royal flushes are revealed simultaneously! The deck explodes dramatically. It's a draw!",
+    "IsDraw": true
+  },
+  {
+    "AnnounceMessage": "Rock... Paper... Scissors... Dynamite?!",
+    "DuelMessage": "Both hands reveal identical explosives! The referee is now a silhouette on the wall. It's a draw!",
+    "IsDraw": true
+  }
+]

@@ -17,4 +17,25 @@
 └── Data/                # Data files
 ```       
 
+#### Twitch Commands
+```
+!help - displays a list of available commands;
+!hello - displays a random greeting to user;
+!title - displays the current stream title;
+!game - shows what game is currently being played;
+!who - shows participating streamers;		
+!role - shows the user role on current channel;
+!stats - shows user stats;
+!duel - starts the duel with other user;
+!up - increase selected stat by 1 if there is enough free points.
+```
+
+#### Telegram Commands
+```
+uptime - get stream uptime;
+test - just for test;
+math - do simple math (e.g. a + b, a*b, a/b, a-b);
+help - show help;
+```
+
 

@@ -120,7 +120,7 @@ func (tb *TwitchBot) InitCommands() {
 		},
 		{
 			Name:        "!up",
-			Description: "Increase selected stat by 1 if there is enough free points.",
+			Description: "Increase selected stat if there is enough free points.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
 				args := strings.Fields(message.Message)
 
