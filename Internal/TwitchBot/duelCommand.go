@@ -1,8 +1,11 @@
 package bot
 
 import (
+	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"time"
 )
 
@@ -24,25 +27,51 @@ func (tb *TwitchBot) StartDuel(username string) {
 
 	//If there is active duel
 	if tb.CurrentDuel != nil && tb.CurrentDuel.IsActive {
-		//Same user invoke duel twice
-		if tb.CurrentDuel.Initiator == username {
-			SayAndLog(
-				tb.Client,
-				constants.Channel,
-				fmt.Sprintf("%s, you've already challenged someone, wait for a response.", username),
-				constants.BotUsername)
-		}
+		// 	//Same user invoke duel twice
+		// 	if tb.CurrentDuel.Initiator == username {
+		// 		SayAndLog(
+		// 			tb.Client,
+		// 			constants.Channel,
+		// 			fmt.Sprintf("%s, you've already challenged someone, wait for a response.", username),
+		// 			constants.BotUsername)
+		// 	}
 
 		//Accept the duel
 		tb.CurrentDuel.Challenger = username
 		tb.CurrentDuel.Timer.Stop()
 		tb.CurrentDuel.IsActive = false
+		curDuel, winner, err := getDuel()
+		if err != nil {
+			SayAndLog(
+				tb.Client,
+				constants.Channel,
+				fmt.Sprintf("%s", err),
+				constants.BotUsername)
+			return
+		}
+		formatedAnnounce := fmt.Sprintf(curDuel.AnnounceMessage, tb.CurrentDuel.Initiator, username)
 		SayAndLog(
 			tb.Client,
 			constants.Channel,
-			fmt.Sprintf("⚔️DUEL! @%s has accepted @%s's challenge! Let the battle begin!", username, tb.CurrentDuel.Initiator),
+			formatedAnnounce,
 			constants.BotUsername)
 
+		var formatedDuelMessage string
+		switch winner {
+		case 0:
+			formatedDuelMessage = curDuel.DuelMessage
+		case 1:
+			formatedDuelMessage = fmt.Sprintf(curDuel.DuelMessage, tb.CurrentDuel.Initiator)
+		case 2:
+			formatedDuelMessage = fmt.Sprintf(curDuel.DuelMessage, username)
+		}
+		if winner >= 0 {
+			SayAndLog(
+				tb.Client,
+				constants.Channel,
+				formatedDuelMessage,
+				constants.BotUsername)
+		}
 		//Set cooldown between duels
 		tb.LastDuelTime = curTime
 		tb.IsDuelCooldownActive = true
@@ -89,4 +118,63 @@ func (tb *TwitchBot) StartDuel(username string) {
 		constants.Channel,
 		fmt.Sprintf("@%s has issued a duel challenge! Type !duel in the next 60 seconds to accept!", username),
 		constants.BotUsername)
+}
+
+func getDuel() (config.DuelMsg, int, error) {
+	duels, err := loadAllDuels()
+	if err != nil {
+		return config.DuelMsg{}, -1, err
+	}
+
+	newDuel, winner := getRandomDuel(duels)
+
+	return newDuel, winner, nil
+}
+
+func loadAllDuels() ([]config.DuelMsg, error) {
+	duelFile, err := config.ConfigPath(constants.DuelsFile)
+	if err != nil {
+		return nil, fmt.Errorf("error gettings duels file path: %w", err)
+	}
+
+	allDuels, err := config.LoadDuels(duelFile)
+	if err != nil {
+		return nil, fmt.Errorf("error while parsing duels file: %w", err)
+	}
+
+	return allDuels, nil
+}
+
+func getRandomDuel(duels []config.DuelMsg) (config.DuelMsg, int) {
+	const MAX_DIFF = 5
+
+	user1Result := rand.IntN(100)
+	user2Result := rand.IntN(100)
+	//Close duels == draw, so i set difference between rolls to 5 (MAX_DIFF)
+	isCloseDuel := math.Abs(float64(user1Result)-float64(user2Result)) <= float64(MAX_DIFF)
+	//res = 0 - draw, 1 - first win, 2 - second win
+	var res int
+	if isCloseDuel {
+		res = 0
+	} else if user1Result > user2Result {
+		res = 1
+	} else {
+		res = 2
+	}
+	sortedDuels := getSortedDuels(duels, isCloseDuel)
+
+	duelNumber := rand.IntN(len(sortedDuels))
+
+	return sortedDuels[duelNumber], res
+}
+
+func getSortedDuels(allDuels []config.DuelMsg, isDraw bool) []config.DuelMsg {
+	//i think for 30 records we don't need pre-allocation for array here, e.g.: make([]config.DuelMsg, 0, len(duels)/2)
+	var duels []config.DuelMsg
+	for _, duel := range allDuels {
+		if duel.IsDraw == isDraw {
+			duels = append(duels, duel)
+		}
+	}
+	return duels
 }

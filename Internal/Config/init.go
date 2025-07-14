@@ -19,6 +19,12 @@ type DbConfig struct {
 	SSLMode  string `json:"sslmode"`
 }
 
+type DuelMsg struct {
+	AnnounceMessage string `json:"AnnounceMessage"`
+	DuelMessage     string `json:"DuelMessage"`
+	IsDraw          bool   `json:"IsDraw"`
+}
+
 func InitRandom() *rand.Rand {
 	seed := time.Now().UnixNano()
 	source := rand.NewSource(seed)
@@ -44,17 +50,27 @@ func ConfigPath(filename string) (string, error) {
 }
 
 func LoadDbConfig(path string) (*DbConfig, error) {
-	var config DbConfig
-	file, err := os.Open(path)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&config); err != nil {
+	var config DbConfig
+	if err := json.Unmarshal(file, &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func LoadDuels(path string) ([]DuelMsg, error) {
+	file, err := os.ReadFile(path)
+	if err != nil {
 		return nil, err
 	}
 
-	return &config, nil
+	var duelMessages []DuelMsg
+	if err := json.Unmarshal(file, &duelMessages); err != nil {
+		return nil, err
+	}
+	return duelMessages, nil
 }

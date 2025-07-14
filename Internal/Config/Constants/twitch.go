@@ -9,4 +9,5 @@ const (
 	FriendsFile   = "friends.txt"
 	HelixFile     = ".twHelix"
 	DbConfigFile  = "database.json"
+	DuelsFile     = "duels.json"
 )
