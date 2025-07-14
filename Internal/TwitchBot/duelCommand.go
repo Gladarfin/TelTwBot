@@ -28,6 +28,7 @@ func (tb *TwitchBot) StartDuel(username string) {
 	//If there is active duel
 	if tb.CurrentDuel != nil && tb.CurrentDuel.IsActive {
 		// 	//Same user invoke duel twice
+		// uncomment this after testing
 		// 	if tb.CurrentDuel.Initiator == username {
 		// 		SayAndLog(
 		// 			tb.Client,
@@ -152,11 +153,9 @@ func getRandomDuel(duels []config.DuelMsg) (config.DuelMsg, int) {
 	user2Result := rand.IntN(100)
 	//Close duels == draw, so i set difference between rolls to 5 (MAX_DIFF)
 	isCloseDuel := math.Abs(float64(user1Result)-float64(user2Result)) <= float64(MAX_DIFF)
-	//res = 0 - draw, 1 - first win, 2 - second win
-	var res int
-	if isCloseDuel {
-		res = 0
-	} else if user1Result > user2Result {
+	//res = 0 - draw (default), 1 - first win, 2 - second win
+	res := 0
+	if user1Result > user2Result {
 		res = 1
 	} else {
 		res = 2
