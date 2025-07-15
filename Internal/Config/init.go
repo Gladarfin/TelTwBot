@@ -49,28 +49,17 @@ func ConfigPath(filename string) (string, error) {
 	return filepath.Join(exeDir, constants.ConfigDir, filename), nil
 }
 
-func LoadDbConfig(path string) (*DbConfig, error) {
+func LoadFromJSON[T any](path string) (T, error) {
 	file, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		var zero T
+		return zero, err
 	}
 
-	var config DbConfig
-	if err := json.Unmarshal(file, &config); err != nil {
-		return nil, err
+	var result T
+	if err := json.Unmarshal(file, &result); err != nil {
+		var zero T
+		return zero, err
 	}
-	return &config, nil
-}
-
-func LoadDuels(path string) ([]DuelMsg, error) {
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var duelMessages []DuelMsg
-	if err := json.Unmarshal(file, &duelMessages); err != nil {
-		return nil, err
-	}
-	return duelMessages, nil
+	return result, nil
 }
