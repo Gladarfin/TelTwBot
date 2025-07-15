@@ -115,7 +115,7 @@ func (tb *TwitchBot) InitCommands() {
 			Name:        "!duel",
 			Description: "Starts the duel with other user.",
 			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
-				tb.StartDuel(message.User.Name)
+				tb.StartDuel(message.User.Name, tb.Duels)
 			},
 		},
 		{

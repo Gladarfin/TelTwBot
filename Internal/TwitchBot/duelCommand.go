@@ -4,12 +4,13 @@ import (
 	config "TelTwBot/Internal/Config"
 	constants "TelTwBot/Internal/Config/Constants"
 	"fmt"
+	"log"
 	"math"
 	"math/rand/v2"
 	"time"
 )
 
-func (tb *TwitchBot) StartDuel(username string) {
+func (tb *TwitchBot) StartDuel(username string, duels []config.DuelMsg) {
 	tb.DuelMutex.Lock()
 	defer tb.DuelMutex.Unlock()
 
@@ -28,25 +29,25 @@ func (tb *TwitchBot) StartDuel(username string) {
 	//If there is active duel
 	if tb.CurrentDuel != nil && tb.CurrentDuel.IsActive {
 		// 	//Same user invoke duel twice
-		// uncomment this after testing
-		// 	if tb.CurrentDuel.Initiator == username {
-		// 		SayAndLog(
-		// 			tb.Client,
-		// 			constants.Channel,
-		// 			fmt.Sprintf("%s, you've already challenged someone, wait for a response.", username),
-		// 			constants.BotUsername)
-		// 	}
+		if tb.CurrentDuel.Initiator == username {
+			SayAndLog(
+				tb.Client,
+				constants.Channel,
+				fmt.Sprintf("%s, you've already challenged someone, wait for a response.", username),
+				constants.BotUsername)
+		}
 
 		//Accept the duel
 		tb.CurrentDuel.Challenger = username
 		tb.CurrentDuel.Timer.Stop()
 		tb.CurrentDuel.IsActive = false
-		curDuel, winner, err := getDuel()
+		curDuel, winner, err := getDuel(duels)
 		if err != nil {
+			log.Fatalf("%s", err)
 			SayAndLog(
 				tb.Client,
 				constants.Channel,
-				fmt.Sprintf("%s", err),
+				"There is some error! Contact the administrator.",
 				constants.BotUsername)
 			return
 		}
@@ -121,29 +122,10 @@ func (tb *TwitchBot) StartDuel(username string) {
 		constants.BotUsername)
 }
 
-func getDuel() (config.DuelMsg, int, error) {
-	duels, err := loadAllDuels()
-	if err != nil {
-		return config.DuelMsg{}, -1, err
-	}
-
+func getDuel(duels []config.DuelMsg) (config.DuelMsg, int, error) {
 	newDuel, winner := getRandomDuel(duels)
 
 	return newDuel, winner, nil
-}
-
-func loadAllDuels() ([]config.DuelMsg, error) {
-	duelFile, err := config.ConfigPath(constants.DuelsFile)
-	if err != nil {
-		return nil, fmt.Errorf("error gettings duels file path: %w", err)
-	}
-
-	allDuels, err := config.LoadDuels(duelFile)
-	if err != nil {
-		return nil, fmt.Errorf("error while parsing duels file: %w", err)
-	}
-
-	return allDuels, nil
 }
 
 func getRandomDuel(duels []config.DuelMsg) (config.DuelMsg, int) {

@@ -18,7 +18,7 @@ func main() {
 		log.Fatalf("Error getting database config path: %v", err)
 	}
 
-	dbConfig, err := config.LoadDbConfig(dbConfigFile)
+	dbConfig, err := config.LoadFromJSON[config.DbConfig](dbConfigFile)
 	if err != nil {
 		log.Fatalf("Error loading database config: %v", err)
 	}
@@ -62,8 +62,19 @@ func main() {
 
 	log.Printf("%sLoaded %d greetings from file.", constants.Green, greeter.Count())
 
+	//load duelFile
+	duelFile, err := config.ConfigPath(constants.DuelsFile)
+	if err != nil {
+		log.Fatalf("Error gettings duels file path: %v", err)
+	}
+
+	allDuels, err := config.LoadFromJSON[[]config.DuelMsg](duelFile)
+	if err != nil {
+		log.Fatalf("Error while parsing duels file: %v", err)
+	}
+
 	//Initialize twitchBot
-	twBot, err := bot.New(greeter, tgBot)
+	twBot, err := bot.New(greeter, allDuels, tgBot)
 
 	if err != nil {
 		log.Fatalf("Error creating bot %v", err)

@@ -23,6 +23,7 @@ type TwitchBot struct {
 	tgBot      botInterfaces.TelegramNotifierInterface
 	commands   []Command
 
+	Duels                []config.DuelMsg
 	CurrentDuel          *DuelChallenge
 	DuelMutex            sync.Mutex
 	LastDuelTime         time.Time
@@ -45,7 +46,7 @@ type Command struct {
 
 var _ botInterfaces.TwitchBotInterface = (*TwitchBot)(nil)
 
-func New(greeter *Greeter, tgNotifier botInterfaces.TelegramNotifierInterface) (*TwitchBot, error) {
+func New(greeter *Greeter, duels []config.DuelMsg, tgNotifier botInterfaces.TelegramNotifierInterface) (*TwitchBot, error) {
 	tokenFilePath, err := config.ConfigPath(constants.TokenFile)
 	if err != nil {
 		log.Fatalf("Error getting token path: %v", err)
@@ -64,6 +65,7 @@ func New(greeter *Greeter, tgNotifier botInterfaces.TelegramNotifierInterface) (
 		startTime:  time.Now(),
 		streamLive: false,
 		tgBot:      tgNotifier,
+		Duels:      duels,
 	}, nil
 }
 
