@@ -30,7 +30,7 @@ func (d *Database) CreateUser(ctx context.Context, username string) (*User, erro
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Can't create or update current user: %s", err)
+		return nil, fmt.Errorf("can't create or update current user: %w", err)
 	}
 
 	return &user, nil
@@ -51,7 +51,7 @@ func (d *Database) GetUser(ctx context.Context, username string) (*User, error) 
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Current user doesn't exist in database. Error: %s", err)
+		return nil, fmt.Errorf("current user doesn't exist in database. Error: %w", err)
 	}
 
 	return &user, nil

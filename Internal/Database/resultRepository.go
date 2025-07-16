@@ -69,3 +69,64 @@ func (d *Database) IncrementUserResult(ctx context.Context, userID int, resultTy
 
 	return nil
 }
+
+func (d *Database) UpdateResultsAfterDuel(ctx context.Context, initiator string, challenger string, result int) error {
+	tx, err := d.db.(*sql.DB).BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	tempRepo := &Database{db: tx}
+
+	challengerId, err := tempRepo.getUserIdByUsername(ctx, challenger)
+	if err != nil {
+		return fmt.Errorf("failed to get challenger ID: %w", err)
+	}
+
+	initiatorId, err := tempRepo.getUserIdByUsername(ctx, initiator)
+	if err != nil {
+		return fmt.Errorf("failed to get initiator ID: %w", err)
+	}
+
+	switch result {
+	case 0:
+		if err := tempRepo.IncrementUserResult(ctx, initiatorId, "draw"); err != nil {
+			return fmt.Errorf("failed to update initiator result values: %w", err)
+		}
+		if err := tempRepo.IncrementUserResult(ctx, challengerId, "draw"); err != nil {
+			return fmt.Errorf("failed to update challenger result values: %w", err)
+		}
+	case 1:
+		if err := tempRepo.IncrementUserResult(ctx, initiatorId, "win"); err != nil {
+			return fmt.Errorf("failed to update initiator result values: %w", err)
+		}
+		if err := tempRepo.IncrementUserResult(ctx, challengerId, "lose"); err != nil {
+			return fmt.Errorf("failed to update challenger result values: %w", err)
+		}
+	case 2:
+		if err := tempRepo.IncrementUserResult(ctx, initiatorId, "lose"); err != nil {
+			return fmt.Errorf("failed to update initiator result values: %w", err)
+		}
+		if err := tempRepo.IncrementUserResult(ctx, challengerId, "win"); err != nil {
+			return fmt.Errorf("failed to update challenger result values: %w", err)
+		}
+	default:
+		return fmt.Errorf("invalid game result: %d", result)
+	}
+
+	return tx.Commit()
+}
+
+func (d *Database) getUserIdByUsername(ctx context.Context, username string) (int, error) {
+	const getUserIdQuery = `
+			SELECT id FROM users WHERE username = $1
+	`
+	var id int
+	err := d.db.QueryRowContext(ctx, getUserIdQuery, username).Scan(&id)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to get user ID: %w", err)
+	}
+	return id, nil
+}

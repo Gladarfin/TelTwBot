@@ -28,7 +28,6 @@ func (tb *TwitchBot) StartDuel(username string, duels []config.DuelMsg) {
 
 	//If there is active duel
 	if tb.CurrentDuel != nil && tb.CurrentDuel.IsActive {
-		// 	//Same user invoke duel twice
 		if tb.CurrentDuel.Initiator == username {
 			SayAndLog(
 				tb.Client,
@@ -62,6 +61,7 @@ func (tb *TwitchBot) StartDuel(username string, duels []config.DuelMsg) {
 		switch winner {
 		case 0:
 			formatedDuelMessage = curDuel.DuelMessage
+
 		case 1:
 			formatedDuelMessage = fmt.Sprintf(curDuel.DuelMessage, tb.CurrentDuel.Initiator)
 		case 2:

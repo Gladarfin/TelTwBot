@@ -11,7 +11,7 @@ import (
 )
 
 type Database struct {
-	db *sql.DB
+	db DB
 }
 
 var (
@@ -41,5 +41,5 @@ func GetInstance() *Database {
 }
 
 func (database *Database) Close() error {
-	return database.db.Close()
+	return database.db.(*sql.DB).Close()
 }

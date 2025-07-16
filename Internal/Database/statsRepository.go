@@ -74,7 +74,7 @@ func (d *Database) getExistingUserStats(ctx context.Context, userID int) ([]User
 			WHERE us.user_id = $1
 	`
 
-	rows, err := d.db.QueryContext(ctx, query, userID)
+	rows, err := d.db.(*sql.DB).QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user stats: %w", err)
 	}
@@ -125,7 +125,7 @@ func (d *Database) createDefaultStatsForUser(ctx context.Context, userID int) er
 
 func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName string, value int) error {
 
-	tx, err := d.db.BeginTx(ctx, nil)
+	tx, err := d.db.(*sql.DB).BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -187,7 +187,7 @@ func (d *Database) UpdateUserStats(ctx context.Context, userID int, statName str
 
 func (d *Database) getAllStatTypes(ctx context.Context) ([]string, error) {
 	const query = `SELECT name FROM stat_types`
-	rows, err := d.db.QueryContext(ctx, query)
+	rows, err := d.db.(*sql.DB).QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stat type: %w", err)
 	}
@@ -211,7 +211,7 @@ func (d *Database) getAllStatTypes(ctx context.Context) ([]string, error) {
 
 func (d *Database) UpdateUserStat(ctx context.Context, username string, stat string, val int) (string, int, error) {
 
-	tx, err := d.db.BeginTx(ctx, nil)
+	tx, err := d.db.(*sql.DB).BeginTx(ctx, nil)
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to begin transaction %w", err)
 	}
