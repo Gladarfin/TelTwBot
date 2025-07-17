@@ -7,4 +7,5 @@ INSERT INTO stat_types (name, display_name, min_value, max_value, default_value)
 ('intelligence', 'Intelligence', 1, 10, 1),
 ('agility', 'Agility', 1, 10, 1),
 ('luck', 'Luck', 1, 10, 1),
-('free-points', 'Free Points', 0, 99, 0);
+('free-points', 'Free Points', 0, 99, 0),
+('total-free-points', 'Total FP', 0, 99, 0);
