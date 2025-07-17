@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 )
 
 type UserResult struct {
@@ -97,6 +98,12 @@ func (d *Database) UpdateResultsAfterDuel(ctx context.Context, initiator string,
 		if err := tempRepo.IncrementUserResult(ctx, challengerId, "draw"); err != nil {
 			return fmt.Errorf("failed to update challenger result values: %w", err)
 		}
+		if err := tempRepo.updateUserPoints(ctx, initiatorId, "draw"); err != nil {
+			return fmt.Errorf("failed to update initiator stats: %w", err)
+		}
+		if err := tempRepo.updateUserPoints(ctx, challengerId, "draw"); err != nil {
+			return fmt.Errorf("failed to update challenger stats: %w", err)
+		}
 	case 1:
 		if err := tempRepo.IncrementUserResult(ctx, initiatorId, "win"); err != nil {
 			return fmt.Errorf("failed to update initiator result values: %w", err)
@@ -104,12 +111,18 @@ func (d *Database) UpdateResultsAfterDuel(ctx context.Context, initiator string,
 		if err := tempRepo.IncrementUserResult(ctx, challengerId, "lose"); err != nil {
 			return fmt.Errorf("failed to update challenger result values: %w", err)
 		}
+		if err := tempRepo.updateUserPoints(ctx, initiatorId, "win"); err != nil {
+			return fmt.Errorf("failed to update initiator stats: %w", err)
+		}
 	case 2:
 		if err := tempRepo.IncrementUserResult(ctx, initiatorId, "lose"); err != nil {
 			return fmt.Errorf("failed to update initiator result values: %w", err)
 		}
 		if err := tempRepo.IncrementUserResult(ctx, challengerId, "win"); err != nil {
 			return fmt.Errorf("failed to update challenger result values: %w", err)
+		}
+		if err := tempRepo.updateUserPoints(ctx, challengerId, "win"); err != nil {
+			return fmt.Errorf("failed to update challenger stats: %w", err)
 		}
 	default:
 		return fmt.Errorf("invalid game result: %d", result)
@@ -129,4 +142,65 @@ func (d *Database) getUserIdByUsername(ctx context.Context, username string) (in
 		return 0, fmt.Errorf("failed to get user ID: %w", err)
 	}
 	return id, nil
+}
+
+func (d *Database) updateUserPoints(ctx context.Context, userID int, result string) error {
+	var winsCount, drawsCount int
+	err := d.db.
+		QueryRowContext(ctx, `SELECT total_wins, total_draws FROM user_results WHERE user_id = $1`, userID).
+		Scan(&winsCount, &drawsCount)
+	if err != nil {
+		return fmt.Errorf("couldn't get user points: %w", err)
+	}
+	var statTypeIDTotalFreePoints, statTypeIDFreePoints int
+	err = d.db.QueryRowContext(ctx, `SELECT id FROM stat_types WHERE name = 'free-points'`).Scan(&statTypeIDFreePoints)
+	if err != nil {
+		return fmt.Errorf("couldn't get user free-points stat: %w", err)
+	}
+
+	err = d.db.QueryRowContext(ctx, `SELECT id FROM stat_types WHERE name = 'total-free-points'`).Scan(&statTypeIDTotalFreePoints)
+	if err != nil {
+		return fmt.Errorf("couldn't get user totat free points stat: %w", err)
+	}
+
+	var freePoints, totalFreePoints int
+	err = d.db.QueryRowContext(ctx, `SELECT value FROM user_stats WHERE user_id = $1 AND stat_type_id = $2`, userID, statTypeIDFreePoints).Scan(&freePoints)
+	if err != nil {
+		return fmt.Errorf("couldn't get user free points value: %w", err)
+	}
+	err = d.db.QueryRowContext(ctx, `SELECT value FROM user_stats WHERE user_id = $1 AND stat_type_id = $2`, userID, statTypeIDTotalFreePoints).Scan(&totalFreePoints)
+	if err != nil {
+		return fmt.Errorf("couldn't get user total free points value: %w", err)
+	}
+
+	winThreshold := 10 + 10*int(math.Floor(float64(totalFreePoints)/5))
+	drawThreshold := 20 + 20*int(math.Floor(float64(totalFreePoints)/5))
+
+	var pointsEarned int
+	switch result {
+	case "win":
+		if winsCount%winThreshold == 0 {
+			pointsEarned = 1
+		}
+	case "draw":
+		if drawsCount%drawThreshold == 0 {
+			pointsEarned = 1
+		}
+	}
+
+	const updateStatQuery = `UPDATE user_stats
+		SET value = value + $1
+		WHERE user_id = $2 AND stat_type_id = $3`
+
+	if pointsEarned > 0 {
+		_, err = d.db.ExecContext(ctx, updateStatQuery, pointsEarned, userID, statTypeIDFreePoints)
+		if err != nil {
+			return fmt.Errorf("couldn't update user free points stat: %w", err)
+		}
+		_, err = d.db.ExecContext(ctx, updateStatQuery, pointsEarned, userID, statTypeIDTotalFreePoints)
+		if err != nil {
+			return fmt.Errorf("couldn't update user total free points stat: %w", err)
+		}
+	}
+	return nil
 }
