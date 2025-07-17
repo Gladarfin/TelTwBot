@@ -152,23 +152,27 @@ func (d *Database) updateUserPoints(ctx context.Context, userID int, result stri
 	if err != nil {
 		return fmt.Errorf("couldn't get user points: %w", err)
 	}
+
+	const getStatIdQuery = `SELECT id FROM stat_types WHERE name = $1`
 	var statTypeIDTotalFreePoints, statTypeIDFreePoints int
-	err = d.db.QueryRowContext(ctx, `SELECT id FROM stat_types WHERE name = 'free-points'`).Scan(&statTypeIDFreePoints)
+
+	err = d.db.QueryRowContext(ctx, getStatIdQuery, "free-points").Scan(&statTypeIDFreePoints)
 	if err != nil {
 		return fmt.Errorf("couldn't get user free-points stat: %w", err)
 	}
 
-	err = d.db.QueryRowContext(ctx, `SELECT id FROM stat_types WHERE name = 'total-free-points'`).Scan(&statTypeIDTotalFreePoints)
+	err = d.db.QueryRowContext(ctx, getStatIdQuery, "total-free-points").Scan(&statTypeIDTotalFreePoints)
 	if err != nil {
 		return fmt.Errorf("couldn't get user totat free points stat: %w", err)
 	}
 
+	const getStatTypeIdQuery = `SELECT value FROM user_stats WHERE user_id = $1 AND stat_type_id = $2`
 	var freePoints, totalFreePoints int
-	err = d.db.QueryRowContext(ctx, `SELECT value FROM user_stats WHERE user_id = $1 AND stat_type_id = $2`, userID, statTypeIDFreePoints).Scan(&freePoints)
+	err = d.db.QueryRowContext(ctx, getStatTypeIdQuery, userID, statTypeIDFreePoints).Scan(&freePoints)
 	if err != nil {
 		return fmt.Errorf("couldn't get user free points value: %w", err)
 	}
-	err = d.db.QueryRowContext(ctx, `SELECT value FROM user_stats WHERE user_id = $1 AND stat_type_id = $2`, userID, statTypeIDTotalFreePoints).Scan(&totalFreePoints)
+	err = d.db.QueryRowContext(ctx, getStatTypeIdQuery, userID, statTypeIDTotalFreePoints).Scan(&totalFreePoints)
 	if err != nil {
 		return fmt.Errorf("couldn't get user total free points value: %w", err)
 	}
