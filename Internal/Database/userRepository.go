@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -14,45 +15,48 @@ type User struct {
 }
 
 func (d *Database) CreateUser(ctx context.Context, username string) (*User, error) {
-
-	const query = `
+	var user User
+	err := d.WithTransaction(ctx, func(tx *sql.Tx) error {
+		const query = `
 			INSERT INTO users (username)
 			VALUES ($1)
 			ON CONFLICT (username) DO UPDATE SET updated_at = NOW()
 			RETURNING id, username, created_at, updated_at
-	`
+		`
 
-	var user User
-	err := d.db.QueryRowContext(ctx, query, username).Scan(
-		&user.ID,
-		&user.Username,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
+		return tx.QueryRowContext(ctx, query, username).Scan(
+			&user.ID,
+			&user.Username,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+	})
 	if err != nil {
-		return nil, fmt.Errorf("can't create or update current user: %w", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	return &user, nil
 }
 
 func (d *Database) GetUser(ctx context.Context, username string) (*User, error) {
-	const query = `
-			SELECT id, username, created_at, updated_at
-			FROM users
-			WHERE username = $1				
-	`
-
 	var user User
-	err := d.db.QueryRowContext(ctx, query, username).Scan(
-		&user.ID,
-		&user.Username,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("current user doesn't exist in database. Error: %w", err)
-	}
+	err := d.WithTransaction(ctx, func(tx *sql.Tx) error {
+		const query = `
+				SELECT id, username, created_at, updated_at
+				FROM users
+				WHERE username = $1				
+		`
 
+		return tx.QueryRowContext(ctx, query, username).Scan(
+			&user.ID,
+			&user.Username,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
 	return &user, nil
 }
