@@ -27,7 +27,7 @@
 !role - shows the user role on current channel;
 !stats - shows user stats;
 !duel - starts the duel with other user;
-!up - increase selected stat by 1 if there is enough free points.
+!up - increase selected stat if there is enough free points.
 ```
 
 #### Telegram Commands
