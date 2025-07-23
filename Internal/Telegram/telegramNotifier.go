@@ -134,6 +134,8 @@ func (tn *TelegramNotifier) handleCommand(update tgbotapi.Update, twitchBot botI
 		tn.handleHelpCommand(update)
 	case "math":
 		tn.handleMathCommand(update, args)
+	case "stats":
+		tn.handleStatsCommand(update, args)
 	default:
 		tn.sendMessage(update.Message.Chat.ID, "Unknown command. Try /help")
 	}
@@ -182,6 +184,21 @@ func (tn *TelegramNotifier) handleMathCommand(update tgbotapi.Update, args strin
 
 	response := fmt.Sprintf("🧮Result: %s = %v", args, result)
 	tn.sendMessage(update.Message.Chat.ID, response)
+}
+
+func (tn *TelegramNotifier) handleStatsCommand(update tgbotapi.Update, args string) {
+	if args == "" {
+		tn.sendMessage(update.Message.Chat.ID, "Incorrect input. Usage: /stats <username> (e.g. /stats kingOfTheWorld)")
+		return
+	}
+
+	parts := strings.Fields(args)
+	stats, err := GetStats(parts[0])
+	if err != nil {
+		tn.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Error: %w", err))
+		return
+	}
+	tn.SendMessage(stats)
 }
 
 func (tn *TelegramNotifier) sendMessage(chatID int64, text string) {

@@ -297,3 +297,29 @@ func (d *Database) UpdateUserStat(ctx context.Context, username string, stat str
 
 	return statName, newStatValue, nil
 }
+
+//For Telegram
+
+func (d *Database) GetTwitchUserStats(ctx context.Context, username string) ([]UserStats, error) {
+	res, err := d.WithTransactionResult(ctx, func(tx *sql.Tx) (any, error) {
+		userId, err := d.getUserIdByUsername(ctx, username)
+		if err != nil {
+			return nil, fmt.Errorf("user lookup failed: %w", err)
+		}
+		if userId == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+		return d.getExistingUserStats(ctx, tx, userId)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	stats, ok := res.([]UserStats)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type returned from transaction")
+	}
+
+	return stats, nil
+}
