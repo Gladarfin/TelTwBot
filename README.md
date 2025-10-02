@@ -1,3 +1,5 @@
+This is a simple initial Go project for a Twitch and Telegram bot that is not yet finished. The purpose is to explore some functions of APIs.
+
 # TelTwBot
 ```
 /twitch-bot
