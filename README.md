@@ -30,6 +30,7 @@ This is a simple initial Go project for a Twitch and Telegram bot that is not ye
 !stats - shows user stats;
 !duel - starts the duel with other user;
 !up - increase selected stat if there is enough free points.
+!hl - shows game completion times from HowLongToBeat.com.
 ```
 
 #### Telegram Commands
