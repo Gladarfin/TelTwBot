@@ -12,7 +12,7 @@ func GetStats(username string) (string, error) {
 	stats, err := database.GetTwitchUserStats(context.Background(), username)
 	if err != nil {
 		if isUserNotFoundError(err) {
-			return fmt.Sprintf("User %s not found in the database.", username), nil
+			return fmt.Sprintf("❌ User %s not found in the database.", username), nil
 		}
 		return "", err
 	}
@@ -29,11 +29,14 @@ func GetStats(username string) (string, error) {
 	}
 
 	var message strings.Builder
-	message.WriteString(fmt.Sprintf("%s's stats: \n", username))
+	message.WriteString(fmt.Sprintf("📊 %s's stats:\n", username))
+
 	for _, stat := range stats {
 		emoji := emojiMap[stat.StatType]
-		message.WriteString(fmt.Sprintf("%s %s : %d \n", emoji, stat.StatType, stat.Value))
+		message.WriteString(fmt.Sprintf("%s %s %d\n",
+			emoji, stat.StatType, stat.Value))
 	}
+
 	return message.String(), nil
 }
 

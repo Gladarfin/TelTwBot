@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Gladarfin/GetInfoFromHLTB/client"
+	"github.com/Gladarfin/GetInfoFromHLTB/models"
+	"github.com/Gladarfin/GetInfoFromHLTB/utils"
 	"github.com/gempir/go-twitch-irc/v4"
 )
 
@@ -160,5 +163,56 @@ func (tb *TwitchBot) InitCommands() {
 				log.Printf("[%s] ✅Processed !up command for %s.", time.Now().Format("15:04:05"), message.User.Name)
 			},
 		},
+		{
+			Name:        "!hl",
+			Description: "Shows game completion times from HowLongToBeat.com. Usage: !hl <game title>",
+			Handler: func(tb *TwitchBot, message twitch.PrivateMessage) {
+				args := strings.Fields(message.Message)
+
+				if len(args) < 2 {
+					SayAndLog(tb.Client, constants.Channel,
+						fmt.Sprintf("@%s Usage: !hl <game title>", message.User.Name),
+						constants.BotUsername)
+					return
+				}
+
+				gameTitle := strings.Join(args, " ")
+				hltbClient := client.New()
+				options := models.SearchOptions{
+					FilterDLC:  true,
+					FilterMods: true,
+					MaxResults: 1,
+				}
+
+				response, err := hltbClient.Search(gameTitle, options)
+				if err != nil {
+					log.Printf("[%s] ❌ HLTB search failed: %v", time.Now().Format("15:04:05"), err)
+					SayAndLog(tb.Client, constants.Channel,
+						fmt.Sprintf("@%s Error searching for '%s'", message.User.Name, gameTitle),
+						constants.BotUsername)
+					return
+				}
+
+				if len(response.Data) == 0 {
+					SayAndLog(tb.Client, constants.Channel,
+						fmt.Sprintf("@%s No results found for '%s'", message.User.Name, gameTitle),
+						constants.BotUsername)
+					return
+				}
+
+				game := response.Data[0]
+				formattedInfo := formatForTwitch(game, message.User.Name)
+
+				SayAndLog(tb.Client, constants.Channel, formattedInfo, constants.BotUsername)
+
+				log.Printf("[%s] ✅ HLTB: %s", time.Now().Format("15:04:05"), game.GameName)
+			},
+		},
 	}
+}
+
+func formatForTwitch(game models.GameData, username string) string {
+	baseInfo := utils.FormatGameInfo(game)
+	baseInfo = strings.TrimPrefix(baseInfo, "Game: ")
+	return fmt.Sprintf("@%s %s", username, baseInfo)
 }

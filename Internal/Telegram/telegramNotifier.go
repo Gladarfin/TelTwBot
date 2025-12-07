@@ -193,16 +193,19 @@ func (tn *TelegramNotifier) handleStatsCommand(update tgbotapi.Update, args stri
 	}
 
 	parts := strings.Fields(args)
+	//For this, I decide not to overthink much, so we just take the first argument after the command and don't throw errors if there is more than one argument.
 	stats, err := GetStats(parts[0])
 	if err != nil {
-		tn.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Error: %w", err))
+		tn.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Error: %s", err))
 		return
 	}
+
 	tn.SendMessage(stats)
 }
 
 func (tn *TelegramNotifier) sendMessage(chatID int64, text string) {
 	msg := tgbotapi.NewMessage(chatID, text)
+
 	_, err := tn.bot.Send(msg)
 	if err != nil {
 		log.Printf("Error sending Telegram message: %v", err)
